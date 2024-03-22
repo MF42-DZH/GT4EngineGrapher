@@ -4,7 +4,7 @@ import gt4enginegrapher.schema.{Engine, SimpleEngine}
 
 class EngineGraph(engine: SimpleEngine) {
   lazy val points: Seq[(Int, (BigDecimal, BigDecimal))] =
-    (engine.idleRpm to engine.revLimit by 10).map { rpm =>
+    (engine.idleRpm to engine.revLimit by 100).map { rpm =>
       (
         rpm,
         (

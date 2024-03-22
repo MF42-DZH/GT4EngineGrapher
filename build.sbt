@@ -20,5 +20,6 @@ lazy val root = (project in file("."))
       "org.slf4j"           % "slf4j-nop"      % "2.0.12",
       "com.h2database"      % "h2"             % "2.2.224",
       "org.xerial"          % "sqlite-jdbc"    % "3.45.2.0",
+      "org.jfree"           % "jfreechart"     % "1.5.3",
     ),
   )
