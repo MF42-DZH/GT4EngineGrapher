@@ -6,10 +6,11 @@ import gt4enginegrapher.schema.{Name, SimpleEngine}
 import gt4enginegrapher.wrappers.EngineGraph
 import org.jfree.chart.{ChartFactory, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
+import org.jfree.chart.labels.{StandardXYToolTipGenerator, XYToolTipGenerator}
 import org.jfree.chart.plot.XYPlot
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
 import org.jfree.chart.ui.ApplicationFrame
-import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+import org.jfree.data.xy.{XYDataset, XYSeries, XYSeriesCollection}
 
 case class EngineGraphFrame(
   private val carName: Name,
@@ -78,9 +79,24 @@ case class EngineGraphFrame(
   rendererT.setSeriesPaint(0, new Color(134, 230, 0))
   rendererT.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererT.setDefaultShapesVisible(false)
+  rendererT.setDefaultEntityRadius(16)
   rendererP.setSeriesPaint(0, new Color(230, 134, 0))
   rendererP.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererP.setDefaultShapesVisible(false)
+  rendererP.setDefaultEntityRadius(16)
+
+  private val tooltips = new XYToolTipGenerator {
+    override def generateToolTip(dataset: XYDataset, series: Int, item: Int): String = {
+      val x = dataset.getX(series, item)
+      val y = dataset.getY(series, item)
+
+      s"${BigDecimal(y.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP)} ${dataset
+          .getSeriesKey(series)} @ ${x.intValue()} RPM"
+    }
+  }
+
+  rendererT.setSeriesToolTipGenerator(0, tooltips)
+  rendererP.setSeriesToolTipGenerator(0, tooltips)
 
   plot.setRenderer(0, rendererT)
   plot.setRenderer(1, rendererP)
@@ -91,5 +107,6 @@ case class EngineGraphFrame(
 
   private val chartPanel = new ChartPanel(chart)
   chartPanel.setPreferredSize(new Dimension(1280, 800))
+  chartPanel.setInitialDelay(0)
   setContentPane(chartPanel)
 }
