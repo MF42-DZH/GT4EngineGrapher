@@ -1,21 +1,23 @@
 package gt4enginegrapher.ui
 
 import java.awt.{BasicStroke, Color, Dimension, Font}
-
 import gt4enginegrapher.schema.{Name, SimpleEngine}
 import gt4enginegrapher.wrappers.EngineGraph
-import org.jfree.chart.{ChartFactory, ChartPanel, JFreeChart}
+import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
-import org.jfree.chart.labels.{StandardXYToolTipGenerator, XYToolTipGenerator}
-import org.jfree.chart.plot.XYPlot
+import org.jfree.chart.entity.XYItemEntity
+import org.jfree.chart.labels.{CrosshairLabelGenerator, StandardXYToolTipGenerator, XYToolTipGenerator}
+import org.jfree.chart.panel.CrosshairOverlay
+import org.jfree.chart.plot.{Crosshair, XYPlot}
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
-import org.jfree.chart.ui.ApplicationFrame
+import org.jfree.chart.ui.{ApplicationFrame, RectangleAnchor}
 import org.jfree.data.xy.{XYDataset, XYSeries, XYSeriesCollection}
 
 case class EngineGraphFrame(
   private val carName: Name,
   private val engine: SimpleEngine,
-) extends ApplicationFrame(s"GT4 Engine Graph: ${carName.name}") {
+) extends ApplicationFrame(s"GT4 Engine Graph")
+  with ChartMouseListener {
   private val rawGraphData: EngineGraph = EngineGraph(engine)
   private val torqueC = new XYSeriesCollection
   private val torque = new XYSeries("Torque (kgf.m)")
@@ -32,11 +34,11 @@ case class EngineGraphFrame(
   powerC.addSeries(power)
 
   private val plot = new XYPlot()
-  plot.setDataset(0, torqueC)
-  plot.setDataset(1, powerC)
+  plot.setDataset(0, powerC)
+  plot.setDataset(1, torqueC)
 
   {
-    val rangeAxis = new NumberAxis("kgf.m")
+    val rangeAxis = new NumberAxis("PS")
     rangeAxis.setAutoRangeIncludesZero(true)
 
     val df = rangeAxis.getLabelFont
@@ -48,7 +50,7 @@ case class EngineGraphFrame(
   }
 
   {
-    val rangeAxis = new NumberAxis("PS")
+    val rangeAxis = new NumberAxis("kgf.m")
     rangeAxis.setAutoRangeIncludesZero(true)
 
     val df = rangeAxis.getLabelFont
@@ -79,27 +81,45 @@ case class EngineGraphFrame(
   rendererT.setSeriesPaint(0, new Color(134, 230, 0))
   rendererT.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererT.setDefaultShapesVisible(false)
-  rendererT.setDefaultEntityRadius(16)
+  rendererT.setDefaultEntityRadius(4)
   rendererP.setSeriesPaint(0, new Color(230, 134, 0))
   rendererP.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererP.setDefaultShapesVisible(false)
-  rendererP.setDefaultEntityRadius(16)
+  rendererP.setDefaultEntityRadius(4)
 
-  private val tooltips = new XYToolTipGenerator {
-    override def generateToolTip(dataset: XYDataset, series: Int, item: Int): String = {
-      val x = dataset.getX(series, item)
-      val y = dataset.getY(series, item)
+  // Crosshairs maybe better?
+  val crosshairStroke = new BasicStroke(
+    1.5f,
+    BasicStroke.CAP_ROUND,
+    BasicStroke.JOIN_ROUND,
+    1.0f,
+    Array(2.5f, 0f, 2.5f),
+    0f,
+  )
+  val rpmCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
 
-      s"${BigDecimal(y.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP)} ${dataset
-          .getSeriesKey(series)} @ ${x.intValue()} RPM"
-    }
-  }
+  rpmCrosshair.setLabelBackgroundPaint(Color.WHITE)
+  rpmCrosshair.setLabelFont(rpmCrosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
+  rpmCrosshair.setLabelPaint(Color.BLACK)
+  rpmCrosshair.setLabelVisible(true)
+  rpmCrosshair.setLabelGenerator((crosshair: Crosshair) => {
+    val Some(torqueAt) = (0 until torque.getItemCount)
+      .map(torque.getDataItem)
+      .find(item => item.getX.intValue() == crosshair.getValue.toInt)
+      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP))
+    val Some(powerAt) = (0 until power.getItemCount)
+      .map(power.getDataItem)
+      .find(item => item.getX.intValue() == crosshair.getValue.toInt)
+      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP))
 
-  rendererT.setSeriesToolTipGenerator(0, tooltips)
-  rendererP.setSeriesToolTipGenerator(0, tooltips)
+    s"$torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM"
+  })
 
-  plot.setRenderer(0, rendererT)
-  plot.setRenderer(1, rendererP)
+  val crosshairs = new CrosshairOverlay
+  crosshairs.addDomainCrosshair(rpmCrosshair)
+
+  plot.setRenderer(0, rendererP)
+  plot.setRenderer(1, rendererT)
   plot.setBackgroundPaint(Color.BLACK)
 
   private val chart = new JFreeChart(carName.name, getFont, plot, true)
@@ -108,5 +128,22 @@ case class EngineGraphFrame(
   private val chartPanel = new ChartPanel(chart)
   chartPanel.setPreferredSize(new Dimension(1280, 800))
   chartPanel.setInitialDelay(0)
+  chartPanel.addOverlay(crosshairs)
+  chartPanel.addChartMouseListener(this)
+
   setContentPane(chartPanel)
+
+  // Don't need this.
+  override def chartMouseClicked(event: ChartMouseEvent): Unit = ()
+
+  override def chartMouseMoved(event: ChartMouseEvent): Unit = {
+    val entity = event.getEntity
+    entity match {
+      case xy: XYItemEntity =>
+        val ix = xy.getItem
+        val xR = torque.getX(ix).intValue()
+        rpmCrosshair.setValue(xR)
+      case _                => ()
+    }
+  }
 }

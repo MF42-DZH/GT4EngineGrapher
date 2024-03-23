@@ -27,6 +27,7 @@ object Main extends AllSchema {
       println(theCar._2.toSimpleEngine)
 
       chart.pack()
+      chart.setLocationRelativeTo(null)
       chart.setVisible(true)
     }
   }
