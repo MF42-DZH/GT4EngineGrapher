@@ -21,7 +21,7 @@ object Main extends AllSchema {
 
     SwingUtilities.invokeLater { () =>
       val Some(theCar) = namedEngines.find { case (n, _) =>
-        n.name.contains("SLR")
+        n.name.contains("120d")
       }
       val chart = EngineGraphFrame(theCar._1, theCar._2.toSimpleEngine)
       println(theCar._2.toSimpleEngine)

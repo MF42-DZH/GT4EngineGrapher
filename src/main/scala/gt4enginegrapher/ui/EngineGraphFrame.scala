@@ -1,12 +1,17 @@
 package gt4enginegrapher.ui
 
 import java.awt.{BasicStroke, Color, Dimension, Font}
+
 import gt4enginegrapher.schema.{Name, SimpleEngine}
 import gt4enginegrapher.wrappers.EngineGraph
 import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.entity.XYItemEntity
-import org.jfree.chart.labels.{CrosshairLabelGenerator, StandardXYToolTipGenerator, XYToolTipGenerator}
+import org.jfree.chart.labels.{
+  CrosshairLabelGenerator,
+  StandardXYToolTipGenerator,
+  XYToolTipGenerator,
+}
 import org.jfree.chart.panel.CrosshairOverlay
 import org.jfree.chart.plot.{Crosshair, XYPlot}
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
@@ -81,27 +86,35 @@ case class EngineGraphFrame(
   rendererT.setSeriesPaint(0, new Color(134, 230, 0))
   rendererT.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererT.setDefaultShapesVisible(false)
-  rendererT.setDefaultEntityRadius(4)
+  rendererT.setDefaultEntityRadius(8)
   rendererP.setSeriesPaint(0, new Color(230, 134, 0))
   rendererP.setSeriesStroke(0, new BasicStroke(2.5f))
   rendererP.setDefaultShapesVisible(false)
-  rendererP.setDefaultEntityRadius(4)
+  rendererP.setDefaultEntityRadius(8)
 
   // Crosshairs maybe better?
   val crosshairStroke = new BasicStroke(
-    1.5f,
+    2.5f,
     BasicStroke.CAP_ROUND,
     BasicStroke.JOIN_ROUND,
     1.0f,
-    Array(2.5f, 0f, 2.5f),
+    Array(5f),
     0f,
   )
   val rpmCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
+  val peakTCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
+  val peakPCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
 
-  rpmCrosshair.setLabelBackgroundPaint(Color.WHITE)
-  rpmCrosshair.setLabelFont(rpmCrosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
-  rpmCrosshair.setLabelPaint(Color.BLACK)
-  rpmCrosshair.setLabelVisible(true)
+  Seq(rpmCrosshair, peakTCrosshair, peakPCrosshair).foreach { crosshair =>
+    crosshair.setLabelBackgroundPaint(Color.WHITE)
+    crosshair.setLabelFont(crosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
+    crosshair.setLabelPaint(Color.BLACK)
+    crosshair.setLabelVisible(true)
+  }
+
+  peakPCrosshair.setLabelYOffset(25.5)
+  rpmCrosshair.setLabelYOffset(48)
+
   rpmCrosshair.setLabelGenerator((crosshair: Crosshair) => {
     val Some(torqueAt) = (0 until torque.getItemCount)
       .map(torque.getDataItem)
@@ -115,7 +128,23 @@ case class EngineGraphFrame(
     s"$torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM"
   })
 
+  peakTCrosshair.setLabelGenerator { _ =>
+    val (rpm, t) = rawGraphData.peakTorque
+    s"${t.setScale(2, BigDecimal.RoundingMode.HALF_UP)} kgf.m @ $rpm RPM"
+  }
+
+  peakTCrosshair.setValue(rawGraphData.peakTorque._1)
+
+  peakPCrosshair.setLabelGenerator { _ =>
+    val (rpm, p) = rawGraphData.peakPower
+    s"${p.setScale(2, BigDecimal.RoundingMode.HALF_UP)} PS @ $rpm RPM"
+  }
+
+  peakPCrosshair.setValue(rawGraphData.peakPower._1)
+
   val crosshairs = new CrosshairOverlay
+  crosshairs.addDomainCrosshair(peakPCrosshair)
+  crosshairs.addDomainCrosshair(peakTCrosshair)
   crosshairs.addDomainCrosshair(rpmCrosshair)
 
   plot.setRenderer(0, rendererP)

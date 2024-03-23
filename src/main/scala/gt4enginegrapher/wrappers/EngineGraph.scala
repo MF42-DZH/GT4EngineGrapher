@@ -13,6 +13,16 @@ class EngineGraph(engine: SimpleEngine) {
         ),
       )
     }
+
+  lazy val peakTorque: (Int, BigDecimal) = {
+    val max = points.maxBy(p => (p._2._1, -p._1))
+    (max._1, max._2._1)
+  }
+
+  lazy val peakPower: (Int, BigDecimal) = {
+    val max = points.maxBy(p => (p._2._2, p._1))
+    (max._1, max._2._2)
+  }
 }
 
 object EngineGraph {
