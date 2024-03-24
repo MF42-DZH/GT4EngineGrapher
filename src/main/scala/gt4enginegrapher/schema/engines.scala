@@ -409,7 +409,7 @@ case class SimpleEngine(
   def powerAt(rpm: Int): Option[BigDecimal] =
     torqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
 
-  private def unlerp(lower: Int, upper: Int, where: Int): BigDecimal =
+  private def unlerpRPM(lower: Int, upper: Int, where: Int): BigDecimal =
     BigDecimal(where - lower) / BigDecimal(upper - lower).abs
 
   private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
@@ -422,7 +422,7 @@ case class SimpleEngine(
     SimpleEngine(
       label        = label,
       torquePoints = torquePoints.map { case (t, rpm) =>
-        val where = unlerp(idleRpm, torquePoints.maxBy(_._2)._2, rpm)
+        val where = unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2, rpm)
         val umod = lerp(mod2, mod1, where)
 
         (t * umod, rpm)
@@ -434,9 +434,7 @@ case class SimpleEngine(
 }
 
 trait EngineProvider {
-  class EngineT(tag: Tag) extends Table[Engine](tag, "ENGINE") {
-    def rowId = column[Int]("RowId")
-    def label = column[String]("Label")
+  class EngineT(tag: Tag) extends SpecTable[Engine](tag, "ENGINE") {
     def displacement = column[String]("discplacement")
     def engineType = column[String]("enginetype")
     def cam = column[String]("cam")

@@ -25,9 +25,7 @@ case class SimpleName(
 )
 
 trait NameProvider {
-  class NameT(tag: Tag) extends Table[Name](tag, "CAR_NAME_american") {
-    def rowId = column[Int]("RowId")
-    def label = column[String]("Label")
+  class NameT(tag: Tag) extends SpecTable[Name](tag, "CAR_NAME_american") {
     def name = column[String]("Name")
     def grade = column[String]("Grade")
     def shortName = column[String]("ShortName")

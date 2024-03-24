@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
 import gt4enginegrapher.schema.AllSchema
-import gt4enginegrapher.ui.EngineGraphFrame
+import gt4enginegrapher.ui.EngineGraphPanel
 import slick.jdbc.SQLiteProfile.api._
 
 object Main extends AllSchema {
@@ -21,15 +21,13 @@ object Main extends AllSchema {
 
     SwingUtilities.invokeLater { () =>
       val Some(theCar) = namedEngines.find { case (n, _) =>
-        n.name.contains("120d")
+        n.name.contains("500F")
       }
 
-      val se = theCar._2.toSimpleEngine.remapEngine(BigDecimal("1.63"), BigDecimal("0.92"))
-      val chart = EngineGraphFrame(theCar._1, se)
+      val se = theCar._2.toSimpleEngine//.remapEngine(BigDecimal("4.67"), BigDecimal("1.71"))
+      val chart = EngineGraphPanel(theCar._1, se)
       println(se)
 
-      chart.pack()
-      chart.setLocationRelativeTo(null)
       chart.setVisible(true)
     }
   }

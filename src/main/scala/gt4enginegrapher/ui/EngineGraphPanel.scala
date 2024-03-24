@@ -2,6 +2,8 @@ package gt4enginegrapher.ui
 
 import java.awt.{BasicStroke, Color, Dimension, Font}
 
+import javax.swing.JPanel
+
 import gt4enginegrapher.schema.{Name, SimpleEngine}
 import gt4enginegrapher.wrappers.EngineGraph
 import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
@@ -18,10 +20,10 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
 import org.jfree.chart.ui.{ApplicationFrame, RectangleAnchor}
 import org.jfree.data.xy.{XYDataset, XYSeries, XYSeriesCollection}
 
-case class EngineGraphFrame(
+case class EngineGraphPanel(
   private val carName: Name,
   private val engine: SimpleEngine,
-) extends ApplicationFrame(s"GT4 Engine Graph")
+) extends JPanel
   with ChartMouseListener {
   private val rawGraphData: EngineGraph = EngineGraph(engine)
   private val torqueC = new XYSeriesCollection
@@ -192,7 +194,8 @@ case class EngineGraphFrame(
   chartPanel.addOverlay(crosshairs)
   chartPanel.addChartMouseListener(this)
 
-  setContentPane(chartPanel)
+  this.setLayout(null)
+  this.add(chartPanel)
 
   // Don't need this.
   override def chartMouseClicked(event: ChartMouseEvent): Unit =

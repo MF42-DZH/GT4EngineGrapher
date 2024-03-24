@@ -4,7 +4,19 @@ import java.nio.file.Paths
 
 import slick.jdbc.SQLiteProfile.api._
 
-trait AllSchema extends EngineProvider with NameProvider {
+trait AllSchema
+  extends NameProvider
+  with EngineProvider
+  with NATunesProvider
+  with SuperchargerProvider
+  with TurbineKitProvider
+  with PortPolishProvider
+  with EngineBalanceProvider
+  with MufflerProvider
+  with DisplacementUpProvider
+  with ComputerProvider
+  with IntercoolerProvider
+  with NitrousProvider {
   lazy val usDb = {
     val dbPath = Paths.get(classOf[AllSchema].getResource("/GT4_PREMIUM_US2560.sqlite").toURI)
     Database.forURL(s"jdbc:sqlite://$dbPath", driver = "org.sqlite.JDBC")
