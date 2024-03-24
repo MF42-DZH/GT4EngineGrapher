@@ -14,6 +14,7 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
   var chosenSupercharger: Option[Supercharger] = None
   var chosenNos: Option[Nitrous] = None
   var chosenNitrousSetting: Option[Int] = None
+  var withGoodOil: Boolean = false
 
   def buildStockEngine(): (SimpleName, SimpleEngine) = (name, engine.toSimpleEngine)
 
@@ -40,5 +41,8 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
       .flatMap(n => chosenNitrousSetting.flatMap(ns => n.toUsedNitrous(ns)))
       .map(_.remapEngine(withSupercharger))
       .orElse(Some(withSupercharger))
-  } yield (name, withNOS)).getOrElse(buildStockEngine())
+  } yield (
+    name,
+    if (withGoodOil) withNOS.remapEngine(BigDecimal("1.05"), BigDecimal("1.05")) else withNOS,
+  )).getOrElse(buildStockEngine())
 }

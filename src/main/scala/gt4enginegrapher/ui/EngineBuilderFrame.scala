@@ -30,10 +30,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
   // Car selector
   private val carSelector = new JComboBox[SimpleName](allNames.sortBy(_.name).toArray)
+  private val oilQualityTick = new JCheckBox("New Oil?")
   add(new JPanel() { inner =>
     setLayout(new BoxLayout(inner, BoxLayout.LINE_AXIS))
     add(new JLabel("Select Car: "))
-    add(carSelector)
+    add(new JPanel() { split => setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(oilQualityTick) })
   })
   add(customizerHome)
 
@@ -120,7 +121,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await.result(byLabel(mufflers).map(_.map(_.asInstanceOf[Muffler])), Duration.Inf)
+      ) +: Await
+        .result(byLabel(mufflers).map(_.map(_.asInstanceOf[Muffler])), Duration.Inf)
+        .sortBy(_.category)
     }
     val (ecus, ecup) = generateCustomizer[Computer]("Racing Chip") {
       Computer(
@@ -133,7 +136,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: Await.result(byLabel(computers).map(_.map(_.asInstanceOf[Computer])), Duration.Inf)
     }
     val (nas, nap) =
-      generateCustomizer[NATune]("NA Tuning") { // TODO: Disable Turbine Kit and Supercharger.
+      generateCustomizer[NATune]("NA Tuning") {
         NATune(
           rowId                 = 0,
           label                 = "notapplied",
@@ -143,27 +146,35 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           category              = 0,
           shiftLimit            = 0,
           revLimit              = 0,
-        ) +: Await.result(byLabel(naTunes).map(_.map(_.asInstanceOf[NATune])), Duration.Inf)
+        ) +: Await
+          .result(byLabel(naTunes).map(_.map(_.asInstanceOf[NATune])), Duration.Inf)
+          .sortBy(_.category)
       }
     val (tks, tkp) =
-      generateCustomizer[TurbineKit]("Turbine Kit") { // TODO: Disable NA Tuning and Supercharger.
-        TurbineKit(
-          rowId                 = 0,
-          label                 = "notapplied",
-          price                 = 0,
-          highRPMTorqueModifier = 100,
-          lowRPMTorqueModifier  = 100,
-          category              = 0,
-          wastegate             = 0,
-          boost1                = 0,
-          peakRpm1              = 0,
-          response1             = 0,
-          boost2                = 0,
-          peakRpm2              = 0,
-          response2             = 0,
-          shiftLimit            = 0,
-          revLimit              = 0,
-        ) +: Await.result(byLabel(turbineKits).map(_.map(_.asInstanceOf[TurbineKit])), Duration.Inf)
+      generateCustomizer[TurbineKit]("Turbine Kit") {
+        val turbines = Await
+          .result(byLabel(turbineKits).map(_.map(_.asInstanceOf[TurbineKit])), Duration.Inf)
+          .sortBy(_.category)
+
+        if (turbines.exists(_.category == 0)) turbines
+        else
+          TurbineKit(
+            rowId                 = 0,
+            label                 = "notapplied",
+            price                 = 0,
+            highRPMTorqueModifier = 100,
+            lowRPMTorqueModifier  = 100,
+            category              = 0,
+            wastegate             = 0,
+            boost1                = 0,
+            peakRpm1              = 0,
+            response1             = 0,
+            boost2                = 0,
+            peakRpm2              = 0,
+            response2             = 0,
+            shiftLimit            = 0,
+            revLimit              = 0,
+          ) +: turbines
       }
     val (ics, icp) = generateCustomizer[Intercooler]("Intercooler") {
       Intercooler(
@@ -173,10 +184,12 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await.result(byLabel(intercoolers).map(_.map(_.asInstanceOf[Intercooler])), Duration.Inf)
+      ) +: Await
+        .result(byLabel(intercoolers).map(_.map(_.asInstanceOf[Intercooler])), Duration.Inf)
+        .sortBy(_.category)
     }
     val (scs, scp) =
-      generateCustomizer[Supercharger]("Supercharger") { // TODO: Disable NA Tuning and Turbine Kit.
+      generateCustomizer[Supercharger]("Supercharger") {
         Supercharger(
           rowId                 = 0,
           label                 = "notapplied",
@@ -207,7 +220,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       if (
         e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
           .asInstanceOf[NATune]
-          .label != "notapplied"
+          .category > 0
       ) {
         tks.setSelectedIndex(0)
         scs.setSelectedIndex(0)
@@ -218,7 +231,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       if (
         e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
           .asInstanceOf[TurbineKit]
-          .label != "notapplied"
+          .category > 0
       ) {
         nas.setSelectedIndex(0)
         scs.setSelectedIndex(0)
@@ -229,7 +242,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       if (
         e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
           .asInstanceOf[Supercharger]
-          .label != "notapplied"
+          .category > 0
       ) {
         nas.setSelectedIndex(0)
         tks.setSelectedIndex(0)
@@ -263,6 +276,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         } else {
           nsl.setText(s"Nitrous Strength")
         }
+
+        ebf.pack()
+        ebf.repaint()
       }
     })
 
@@ -324,6 +340,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
           builder.chosenNos            = Some(nos)
           builder.chosenNitrousSetting = nosStrength
+          builder.withGoodOil          = oilQualityTick.isSelected
 
           val (_, engine) = builder.buildEngine()
           val chart = EngineGraphPanel(ebf, name, engine)
