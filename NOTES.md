@@ -1,6 +1,7 @@
 # Working Notes
 
 - `torquevol` in `ENGINE` is just a flat multiplier on all torque points.
+- GT4 uses a number close to `714.25` for the constant `r` in `Power = (Torque × RPM) / r`. There is likely a way to get something more accurate, but I don't know how.
 - Stock parts do absolutely nothing to the engine.
 - For upgrades where `torquemodifier1` = `torquemodifier2`, it acts as a flat torque multiplier across all RPMs.
   - Otherwise, apply a lerped modifier from `torquemodifier2` from the lowest RPM torque point to `torquemodifier1` on the highest RPM torque point.
