@@ -13,7 +13,12 @@ case class NATune(
   override val shiftLimit: Int,
   override val revLimit: Int,
 ) extends HasTorqueRemapping
-  with HasRevIncrease
+  with HasRevIncrease {
+  override def toString: String = category match {
+    case 0 => "Not Applied / Stock"
+    case _ => s"Stage $category"
+  }
+}
 
 trait NATunesProvider {
   class NATuneT(tag: Tag)

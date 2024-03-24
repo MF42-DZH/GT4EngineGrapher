@@ -22,7 +22,9 @@ case class Name(
 case class SimpleName(
   label: String,
   name: String,
-)
+) {
+  override def toString: String = name
+}
 
 trait NameProvider {
   class NameT(tag: Tag) extends SpecTable[Name](tag, "CAR_NAME_american") {

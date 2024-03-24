@@ -10,7 +10,13 @@ case class Computer(
   override val lowRPMTorqueModifier: Int,
   price: Int,
   category: Int,
-) extends HasTorqueRemapping
+) extends HasTorqueRemapping {
+  override def toString: String = category match {
+    case 0 => "Stock ECU"
+    case 1 => "Sports ECU"
+    case _ => "Invalid"
+  }
+}
 
 trait ComputerProvider {
   class ComputerT(tag: Tag) extends UpgradeTable[Computer](tag, "COMPUTER") {

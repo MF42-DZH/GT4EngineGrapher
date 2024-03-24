@@ -10,7 +10,13 @@ case class PortPolish(
   override val lowRPMTorqueModifier: Int,
   price: Int,
   category: Int,
-) extends HasTorqueRemapping
+) extends HasTorqueRemapping {
+  override def toString: String = category match {
+    case 0 => "Not Applied"
+    case 1 => "Applied"
+    case _ => "Invalid"
+  }
+}
 
 trait PortPolishProvider {
   class PortPolishT(tag: Tag) extends UpgradeTable[PortPolish](tag, "PORTPOLISH") {

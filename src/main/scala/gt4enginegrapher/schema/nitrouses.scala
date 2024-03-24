@@ -17,6 +17,12 @@ case class Nitrous(
     case s if s >= minSetting && s <= maxSetting => Some(UsedNitrous(this, setting))
     case _                                       => None
   }
+
+  override def toString: String = category match {
+    case 0 => "Not Applied"
+    case 1 => "Applied"
+    case _ => "Invalid"
+  }
 }
 
 case class UsedNitrous(

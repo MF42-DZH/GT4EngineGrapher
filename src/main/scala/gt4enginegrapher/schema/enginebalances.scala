@@ -13,7 +13,13 @@ case class EngineBalance(
   override val shiftLimit: Int,
   override val revLimit: Int,
 ) extends HasTorqueRemapping
-  with HasRevIncrease
+  with HasRevIncrease {
+  override def toString: String = category match {
+    case 0 => "Not Applied"
+    case 1 => "Applied"
+    case _ => "Invalid"
+  }
+}
 
 trait EngineBalanceProvider {
   class EngineBalanceT(tag: Tag)

@@ -2,28 +2,23 @@ package gt4enginegrapher.ui
 
 import java.awt.{BasicStroke, Color, Dimension, Font}
 
-import javax.swing.JPanel
+import javax.swing.{JDialog, JFrame}
 
-import gt4enginegrapher.schema.{Name, SimpleEngine}
+import gt4enginegrapher.schema.{SimpleEngine, SimpleName}
 import gt4enginegrapher.wrappers.EngineGraph
-import org.jfree.chart.{ChartFactory, ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
+import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.entity.XYItemEntity
-import org.jfree.chart.labels.{
-  CrosshairLabelGenerator,
-  StandardXYToolTipGenerator,
-  XYToolTipGenerator,
-}
 import org.jfree.chart.panel.CrosshairOverlay
 import org.jfree.chart.plot.{Crosshair, XYPlot}
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
-import org.jfree.chart.ui.{ApplicationFrame, RectangleAnchor}
-import org.jfree.data.xy.{XYDataset, XYSeries, XYSeriesCollection}
+import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 
 case class EngineGraphPanel(
-  private val carName: Name,
+  owner: JFrame,
+  private val name: SimpleName,
   private val engine: SimpleEngine,
-) extends JPanel
+) extends JDialog(owner, s"Chart for ${name.name}")
   with ChartMouseListener {
   private val rawGraphData: EngineGraph = EngineGraph(engine)
   private val torqueC = new XYSeriesCollection
@@ -185,8 +180,9 @@ case class EngineGraphPanel(
   plot.setRenderer(1, rendererT)
   plot.setBackgroundPaint(Color.BLACK)
 
-  private val chart = new JFreeChart(carName.name, getFont, plot, true)
+  private val chart = new JFreeChart(name.name, getFont, plot, true)
   chart.setBackgroundPaint(Color.LIGHT_GRAY)
+  chart.getTitle.setFont(chart.getTitle.getFont.deriveFont(24f).deriveFont(Font.BOLD))
 
   private val chartPanel = new ChartPanel(chart)
   chartPanel.setPreferredSize(new Dimension(1280, 800))
@@ -194,8 +190,7 @@ case class EngineGraphPanel(
   chartPanel.addOverlay(crosshairs)
   chartPanel.addChartMouseListener(this)
 
-  this.setLayout(null)
-  this.add(chartPanel)
+  this.setContentPane(chartPanel)
 
   // Don't need this.
   override def chartMouseClicked(event: ChartMouseEvent): Unit =
