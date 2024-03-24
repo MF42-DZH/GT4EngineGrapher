@@ -385,11 +385,8 @@ case class SimpleEngine(
   redLine: Int,
   revLimit: Int,
 ) {
-  import SimpleEngine.TurboStats
-
   // Converts (kgf.m, RPM) => PS
-  final private val torqueToPowerConstant: BigDecimal = BigDecimal("716.2")
-  final private val atmosphere: BigDecimal = BigDecimal("1.01325")
+  final private val torqueToPowerConstant: BigDecimal = BigDecimal("714.25")
 
   def idleRpm: Int = torquePoints.head._2
 
@@ -418,60 +415,22 @@ case class SimpleEngine(
   private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
     (BigDecimal(1) - where) * lower + where * upper
 
-  def remapTurbo(
-    turboStatsLow: TurboStats,
-    turboStatsHigh: TurboStats,
+  def remapEngine(
+    mod1: BigDecimal,
+    mod2: BigDecimal,
   ): SimpleEngine =
     SimpleEngine(
       label        = label,
       torquePoints = torquePoints.map { case (t, rpm) =>
-        (turboStatsLow, turboStatsHigh) match {
-          case (
-              TurboStats(mod1, boost1, peak1, response1),
-              TurboStats(mod2, boost2, peak2, response2),
-            ) =>
-            val where1 = unlerp(idleRpm, peak1 + response1, rpm)
-            val where2 =
-              Try(unlerp(peak1, (peak2 + response2).max(redLine), rpm))
-                .getOrElse(where1)
+        val where = unlerp(idleRpm, torquePoints.maxBy(_._2)._2, rpm)
+        val umod = lerp(mod2, mod1, where)
 
-            val umod1 =
-              if (where1 < 0) BigDecimal(1)
-              else if (where1 > 1) mod1
-              else lerp(BigDecimal(1), mod1, where1)
-            val umod2 =
-              if (where2 < 0) BigDecimal(1)
-              else if (where2 > 1) mod2
-              else lerp(BigDecimal(1), mod2, where2)
-
-            val b1 =
-              if (where1 < 0) BigDecimal(0)
-              else if (where1 > 1) boost1
-              else lerp(BigDecimal(0), boost1, where1)
-            val b2 =
-              if (where2 < 0) BigDecimal(0)
-              else if (where2 > 1) boost2
-              else lerp(BigDecimal(0), boost2, where1)
-
-            val bmod1 = (b1 + atmosphere) / atmosphere
-            val bmod2 = (b2 + atmosphere) / atmosphere
-
-            (t * umod1 * umod2 * bmod1 * bmod2, rpm)
-        }
+        (t * umod, rpm)
       },
       torqueVol    = torqueVol,
       redLine      = redLine,
       revLimit     = revLimit,
     )
-}
-
-object SimpleEngine {
-  case class TurboStats(
-    torqueModifier: BigDecimal,
-    boost: BigDecimal,
-    peakRpm: Int,
-    response: Int,
-  )
 }
 
 trait EngineProvider {
