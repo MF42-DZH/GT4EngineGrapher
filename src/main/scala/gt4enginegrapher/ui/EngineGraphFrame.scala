@@ -104,16 +104,40 @@ case class EngineGraphFrame(
   val rpmCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
   val peakTCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
   val peakPCrosshair = new Crosshair(Double.NaN, Color.WHITE, crosshairStroke)
+  val rlCrosshair = new Crosshair(Double.NaN, Color.RED, crosshairStroke)
+  val limitCrosshair = new Crosshair(Double.NaN, Color.RED, new BasicStroke(2.5f))
 
-  Seq(rpmCrosshair, peakTCrosshair, peakPCrosshair).foreach { crosshair =>
+  if (engine.revLimit <= engine.redLine) {
+    limitCrosshair.setLabelBackgroundPaint(new Color(255, 143, 143))
+    limitCrosshair.setLabelFont(limitCrosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
+    limitCrosshair.setLabelPaint(Color.BLACK)
+    limitCrosshair.setLabelVisible(true)
+
+    limitCrosshair.setValue(engine.revLimit)
+
+    limitCrosshair.setLabelGenerator { _ =>
+      s" Limiter @ ${engine.revLimit} RPM "
+    }
+  }
+
+  Seq(rpmCrosshair, peakTCrosshair, peakPCrosshair, rlCrosshair).foreach { crosshair =>
     crosshair.setLabelBackgroundPaint(Color.WHITE)
     crosshair.setLabelFont(crosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
     crosshair.setLabelPaint(Color.BLACK)
     crosshair.setLabelVisible(true)
   }
+  rlCrosshair.setLabelBackgroundPaint(new Color(255, 175, 175))
 
-  peakPCrosshair.setLabelYOffset(25.5)
-  rpmCrosshair.setLabelYOffset(48)
+  if (engine.revLimit <= engine.redLine) {
+    rlCrosshair.setLabelYOffset(25.5)
+    peakPCrosshair.setLabelYOffset(48)
+    peakTCrosshair.setLabelYOffset(70.5)
+    rpmCrosshair.setLabelYOffset(93)
+  } else {
+    peakPCrosshair.setLabelYOffset(25.5)
+    peakTCrosshair.setLabelYOffset(48)
+    rpmCrosshair.setLabelYOffset(70.5)
+  }
 
   rpmCrosshair.setLabelGenerator((crosshair: Crosshair) => {
     val Some(torqueAt) = (0 until torque.getItemCount)
@@ -125,26 +149,34 @@ case class EngineGraphFrame(
       .find(item => item.getX.intValue() == crosshair.getValue.toInt)
       .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP))
 
-    s"$torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM"
+    s" $torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM "
   })
 
   peakTCrosshair.setLabelGenerator { _ =>
     val (rpm, t) = rawGraphData.peakTorque
-    s"${t.setScale(2, BigDecimal.RoundingMode.HALF_UP)} kgf.m @ $rpm RPM"
+    s" ${t.setScale(2, BigDecimal.RoundingMode.HALF_UP)} kgf.m @ $rpm RPM "
   }
 
   peakTCrosshair.setValue(rawGraphData.peakTorque._1)
 
   peakPCrosshair.setLabelGenerator { _ =>
     val (rpm, p) = rawGraphData.peakPower
-    s"${p.setScale(2, BigDecimal.RoundingMode.HALF_UP)} PS @ $rpm RPM"
+    s" ${p.setScale(2, BigDecimal.RoundingMode.HALF_UP)} PS @ $rpm RPM "
   }
 
   peakPCrosshair.setValue(rawGraphData.peakPower._1)
 
+  rlCrosshair.setLabelGenerator { _ =>
+    s" Redline @ ${engine.redLine} RPM "
+  }
+
+  rlCrosshair.setValue(engine.redLine)
+
   val crosshairs = new CrosshairOverlay
   crosshairs.addDomainCrosshair(peakPCrosshair)
   crosshairs.addDomainCrosshair(peakTCrosshair)
+  crosshairs.addDomainCrosshair(limitCrosshair)
+  crosshairs.addDomainCrosshair(rlCrosshair)
   crosshairs.addDomainCrosshair(rpmCrosshair)
 
   plot.setRenderer(0, rendererP)
@@ -163,7 +195,8 @@ case class EngineGraphFrame(
   setContentPane(chartPanel)
 
   // Don't need this.
-  override def chartMouseClicked(event: ChartMouseEvent): Unit = ()
+  override def chartMouseClicked(event: ChartMouseEvent): Unit =
+    rpmCrosshair.setVisible(!rpmCrosshair.isVisible)
 
   override def chartMouseMoved(event: ChartMouseEvent): Unit = {
     val entity = event.getEntity

@@ -1,5 +1,7 @@
 package gt4enginegrapher.schema
 
+import scala.util.Try
+
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
@@ -110,38 +112,6 @@ case class Engine(
     redLine      = scaleRpm(redLine),
     revLimit     = scaleRpm(revLimit),
   )
-}
-
-case class SimpleEngine(
-  label: String,
-  torquePoints: Seq[(BigDecimal, Int)],
-  torqueVol: BigDecimal,
-  redLine: Int,
-  revLimit: Int,
-) {
-  // Converts (kgf.m, RPM) => PS
-  final val torqueToPowerConstant: BigDecimal = BigDecimal("716.2")
-
-  def idleRpm: Int = torquePoints.head._2
-
-  def rawTorqueAt(rpm: Int): Option[BigDecimal] =
-    torquePoints
-      .zip(torquePoints.tail)
-      .find { case ((_, r1), (_, r2)) =>
-        rpm >= r1 && rpm <= r2
-      }
-      .map { case ((t1, r1), (t2, r2)) =>
-        val t = BigDecimal(rpm - r1) / BigDecimal(r2 - r1)
-        (BigDecimal(1) - t) * t1 + t * t2
-      }
-
-  def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map(_ * torqueVol)
-
-  def rawPowerAt(rpm: Int): Option[BigDecimal] =
-    rawTorqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
-
-  def powerAt(rpm: Int): Option[BigDecimal] =
-    torqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
 }
 
 object Engine {
@@ -406,6 +376,102 @@ object Engine {
         ),
       )
   }
+}
+
+case class SimpleEngine(
+  label: String,
+  torquePoints: Seq[(BigDecimal, Int)],
+  torqueVol: BigDecimal,
+  redLine: Int,
+  revLimit: Int,
+) {
+  import SimpleEngine.TurboStats
+
+  // Converts (kgf.m, RPM) => PS
+  final private val torqueToPowerConstant: BigDecimal = BigDecimal("716.2")
+  final private val atmosphere: BigDecimal = BigDecimal("1.01325")
+
+  def idleRpm: Int = torquePoints.head._2
+
+  def rawTorqueAt(rpm: Int): Option[BigDecimal] =
+    torquePoints
+      .zip(torquePoints.tail)
+      .find { case ((_, r1), (_, r2)) =>
+        rpm >= r1 && rpm <= r2
+      }
+      .map { case ((t1, r1), (t2, r2)) =>
+        val t = BigDecimal(rpm - r1) / BigDecimal(r2 - r1)
+        (BigDecimal(1) - t) * t1 + t * t2
+      }
+
+  def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map(_ * torqueVol)
+
+  def rawPowerAt(rpm: Int): Option[BigDecimal] =
+    rawTorqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
+
+  def powerAt(rpm: Int): Option[BigDecimal] =
+    torqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
+
+  private def unlerp(lower: Int, upper: Int, where: Int): BigDecimal =
+    BigDecimal(where - lower) / BigDecimal(upper - lower).abs
+
+  private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
+    (BigDecimal(1) - where) * lower + where * upper
+
+  def remapTurbo(
+    turboStatsLow: TurboStats,
+    turboStatsHigh: TurboStats,
+  ): SimpleEngine =
+    SimpleEngine(
+      label        = label,
+      torquePoints = torquePoints.map { case (t, rpm) =>
+        (turboStatsLow, turboStatsHigh) match {
+          case (
+              TurboStats(mod1, boost1, peak1, response1),
+              TurboStats(mod2, boost2, peak2, response2),
+            ) =>
+            val where1 = unlerp(idleRpm, peak1 + response1, rpm)
+            val where2 =
+              Try(unlerp(peak1, (peak2 + response2).max(redLine), rpm))
+                .getOrElse(where1)
+
+            val umod1 =
+              if (where1 < 0) BigDecimal(1)
+              else if (where1 > 1) mod1
+              else lerp(BigDecimal(1), mod1, where1)
+            val umod2 =
+              if (where2 < 0) BigDecimal(1)
+              else if (where2 > 1) mod2
+              else lerp(BigDecimal(1), mod2, where2)
+
+            val b1 =
+              if (where1 < 0) BigDecimal(0)
+              else if (where1 > 1) boost1
+              else lerp(BigDecimal(0), boost1, where1)
+            val b2 =
+              if (where2 < 0) BigDecimal(0)
+              else if (where2 > 1) boost2
+              else lerp(BigDecimal(0), boost2, where1)
+
+            val bmod1 = (b1 + atmosphere) / atmosphere
+            val bmod2 = (b2 + atmosphere) / atmosphere
+
+            (t * umod1 * umod2 * bmod1 * bmod2, rpm)
+        }
+      },
+      torqueVol    = torqueVol,
+      redLine      = redLine,
+      revLimit     = revLimit,
+    )
+}
+
+object SimpleEngine {
+  case class TurboStats(
+    torqueModifier: BigDecimal,
+    boost: BigDecimal,
+    peakRpm: Int,
+    response: Int,
+  )
 }
 
 trait EngineProvider {
