@@ -1,14 +1,14 @@
 package gt4enginegrapher.ui
 
 import java.awt.{List => _, _}
-import java.awt.event.{ActionEvent, ItemEvent, ItemListener, MouseEvent, MouseListener}
+import java.awt.event.{ItemEvent, MouseEvent, MouseListener}
 
 import javax.swing._
-import javax.swing.text.MaskFormatter
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
+import scala.util.Try
 
 import gt4enginegrapher.schema._
 import gt4enginegrapher.wrappers.EngineBuilder
@@ -34,7 +34,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   add(new JPanel() { inner =>
     setLayout(new BoxLayout(inner, BoxLayout.LINE_AXIS))
     add(new JLabel("Select Car: "))
-    add(new JPanel() { split => setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(oilQualityTick) })
+    add(new JPanel() { split =>
+      setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(oilQualityTick)
+    })
   })
   add(customizerHome)
 
@@ -252,7 +254,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
       val label = new JLabel("Nitrous Strength")
-      val input = new JFormattedTextField(new MaskFormatter("###"))
+      val input = new JTextField()
 
       val panel = new JPanel(new GridLayout(0, 1, 2, 0)) {
         add(label)
@@ -306,9 +308,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           var nosStrength: Option[Int] = None
 
           if (nos.label != "notapplied") {
-            val current = nsi.getText.toInt
+            val current = Try(nsi.getText.toInt).getOrElse(-1)
             if (current < nos.minSetting || current > nos.maxSetting) {
-              // DO SOMETHING
+              JOptionPane.showMessageDialog(
+                ebf,
+                "Nitrous strength out of range or not a number!",
+                "Invalid Value",
+                JOptionPane.ERROR_MESSAGE,
+              )
               return
             }
 
