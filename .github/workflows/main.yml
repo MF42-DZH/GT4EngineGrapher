@@ -6,7 +6,7 @@ on:
 
 env:
   pkg-assembly: 'GT4EngineGrapher.jar'
-  pkg-name: 'GT4EngineGrapher'
+  pkg-name: 'gt4enginegrapher'
   pkg-version: '1.0'
 
 jobs:
