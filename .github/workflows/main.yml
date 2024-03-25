@@ -25,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: jars
-        path: "${{ enf.pkg-assembly }}"
+        path: "${{ env.pkg-assembly }}"
   osx:
     needs: fat
     runs-on: [macos-latest]
