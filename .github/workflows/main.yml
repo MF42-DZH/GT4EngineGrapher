@@ -7,6 +7,7 @@ on:
 env:
   pkg-assembly: GT4EngineGrapher.jar
   pkg-name: GT4EngineGrapher
+  pkg-version: 1.0
 
 jobs:
   fat:
@@ -46,7 +47,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: dmgs
-        path: "${{ env.pkg-name }}.dmg"
+        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.dmg"
   windows:
     needs: fat
     runs-on: [windows-latest]
@@ -69,7 +70,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: msis
-        path: "${{ env.pkg-name }}.msi"
+        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.msi"
   linux:
     needs: fat
     runs-on: [ubuntu-latest]
@@ -90,4 +91,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: debs
-        path: "${{ env.pkg-name }}.deb"
+        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.deb"
