@@ -5,9 +5,9 @@ on:
     branches: [ master ] 
 
 env:
-  pkg-assembly: GT4EngineGrapher.jar
-  pkg-name: GT4EngineGrapher
-  pkg-version: 1.0
+  pkg-assembly: 'GT4EngineGrapher.jar'
+  pkg-name: 'GT4EngineGrapher'
+  pkg-version: '1.0'
 
 jobs:
   fat:
