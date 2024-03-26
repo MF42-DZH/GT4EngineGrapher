@@ -11,7 +11,23 @@ trait CanHaveCarName extends Upgrade {
     this
   }
 
-  protected def getSuffix: String = carName.map(" (" + _ + ")").getOrElse("")
+  protected def getSuffix: String = {
+    val extra = this match {
+      case htm: CanHaveCarName with HasTorqueRemapping =>
+        s"L ${BigDecimal(htm.lowRPMTorqueModifier) / BigDecimal(100)}x → H ${BigDecimal(htm.highRPMTorqueModifier) / BigDecimal(100)}x"
+      case _                                           => ""
+    }
+
+    carName
+      .map(name => {
+        this match {
+          case htm: CanHaveCarName with HasTorqueRemapping =>
+            s" ($name; $extra)"
+          case _                                           => s" ($name)"
+        }
+      })
+      .getOrElse(if (extra.isBlank) "" else s" ($extra)")
+  }
 }
 
 trait HasTorqueRemapping extends Upgrade {
