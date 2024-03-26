@@ -23,7 +23,7 @@ case class SimpleName(
   label: String,
   name: String,
 ) {
-  override def toString: String = name
+  override def toString: String = s"$name${if (!label.contains("not_a_car")) s" ($label)" else ""}"
 }
 
 trait NameProvider {
