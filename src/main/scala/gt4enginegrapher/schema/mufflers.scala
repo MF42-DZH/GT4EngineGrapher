@@ -9,15 +9,15 @@ case class Muffler(
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   price: Int,
-  category: Int,
-) extends HasTorqueRemapping {
-  override def toString: String = category match {
+  override val category: Int,
+) extends HasTorqueRemapping with CanHaveCarName {
+  override def toString: String = (category match {
     case 0 => "Not Applied / Stock"
     case 1 => "Sports"
     case 2 => "Semi-Racing"
     case 3 => "Racing"
     case _ => "Generic"
-  }
+  }) + getSuffix
 }
 
 trait MufflerProvider {

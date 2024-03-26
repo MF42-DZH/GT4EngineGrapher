@@ -9,7 +9,7 @@ case class TurbineKit(
   price: Int,
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
-  category: Int,
+  override val category: Int,
   wastegate: Int,
   boost1: Int,
   peakRpm1: Int,
@@ -20,11 +20,12 @@ case class TurbineKit(
   override val shiftLimit: Int,
   override val revLimit: Int,
 ) extends HasTorqueRemapping
-  with HasRevIncrease {
-  override def toString: String = category match {
+  with HasRevIncrease
+  with CanHaveCarName {
+  override def toString: String = (category match {
     case 0 => "Not Applied / Stock"
     case _ => s"Stage $category"
-  }
+  }) + getSuffix
 }
 
 trait TurbineKitProvider {

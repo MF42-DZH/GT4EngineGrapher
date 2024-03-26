@@ -9,13 +9,14 @@ case class DisplacementUp(
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   price: Int,
-  category: Int,
-) extends HasTorqueRemapping {
-  override def toString: String = category match {
+  override val category: Int,
+) extends HasTorqueRemapping
+  with CanHaveCarName {
+  override def toString: String = (category match {
     case 0 => "Stock"
     case 1 => "Increased"
     case _ => "Invalid"
-  }
+  }) + getSuffix
 }
 
 trait DisplacementUpProvider {

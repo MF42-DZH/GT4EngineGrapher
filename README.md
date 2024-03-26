@@ -6,6 +6,29 @@ All data is sourced from the SpecDB databases of the game (whose SQLite files we
 
 Currently, torque units are stuck on `kgf.m` and power units are stuck on `PS`. Power is also inaccurate by about `±0.1 PS`, so if the graph outputs something like `600.55 PS @ 8000 RPM`, the power in GT4 is actually anywhere between `600.45` and `600.65`.
 
+### Usage
+
+The grapher can be run as a standalone program with no arguments, but launching from the terminal will yield some customizability. Pass in `--help` or `-h` to the program for more information.
+
+- If building and running (or running a prebuilt) JAR, use Java 21.
+- If running from an installed instance, run the program executable installed onto your system. It has a JRE packaged along with all the necessary dependencies.
+
+## Used Libraries
+
+Reading the SpecDB SQLite databases is done using [Slick](https://scala-slick.org/) and an SQLite JDBC driver.
+
+The graphs are powered by [JFreeChart](https://www.jfree.org/jfreechart/), and as such, you can right-click on the chart and save an image of the chart.
+
+## Screenshots
+
+### Parts Picker
+
+![Parts Picker](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/PartsPicker.png)
+
+### Graph
+
+![Torque / power graph for the HPA Stage II R32](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/EngineGraph.png)
+
 ## Special Thanks
 
 - TeaKanji: For inspiring me to go down this rabbit-hole.

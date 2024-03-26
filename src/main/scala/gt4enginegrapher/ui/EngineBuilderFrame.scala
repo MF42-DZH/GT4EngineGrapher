@@ -1,9 +1,11 @@
 package gt4enginegrapher.ui
 
 import java.awt.{List => _, _}
-import java.awt.event.{ItemEvent, MouseEvent, MouseListener}
+import java.awt.event.{ItemEvent, MouseEvent, MouseListener, WindowAdapter, WindowEvent}
+import java.util.concurrent.{ExecutorService, Executors}
 
 import javax.swing._
+import javax.swing.event.ChangeEvent
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
@@ -21,47 +23,138 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   ec: ExecutionContext,
 ) extends JFrame { ebf =>
   import schema._
+  private val worker: ExecutorService = Executors.newSingleThreadExecutor()
 
   setTitle("GT4 Engine Charter")
   setLayout(new BoxLayout(getContentPane, BoxLayout.PAGE_AXIS))
   setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
+  addWindowListener(new WindowAdapter {
+    override def windowClosing(e: WindowEvent): Unit = {
+      if (e.getNewState == WindowEvent.WINDOW_CLOSING) {
+        worker.shutdownNow()
+      }
+    }
+  })
+
   private val customizerHome = new JPanel()
 
   // Car selector
-  private val carSelector = new JComboBox[SimpleName](allNames.sortBy(_.name).toArray)
+  private val carSelector = new JComboBox[SimpleName](
+    (SimpleName(
+      label = "___not_a_car",
+      name  = "[Select a Car]",
+    ) +: allNames.sortBy(_.name)).toArray,
+  )
   private val oilQualityTick = new JCheckBox("New Oil?")
+  private val hybridTick = new JCheckBox("Allow Hybriding?")
+  hybridTick.setEnabled(false)
+
   add(new JPanel() { inner =>
     setLayout(new BoxLayout(inner, BoxLayout.LINE_AXIS))
-    add(new JLabel("Select Car: "))
+    add(new JLabel("Use engine of: "))
     add(new JPanel() { split =>
-      setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(oilQualityTick)
+      setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(hybridTick);
+      add(oilQualityTick)
     })
   })
   add(customizerHome)
 
-  carSelector.addItemListener((e: ItemEvent) => {
-    if (e.getStateChange == ItemEvent.SELECTED) {
-      customizerHome.removeAll()
-      customizerHome.add(newCustomizer(carSelector.getSelectedItem.asInstanceOf[SimpleName]))
+  private def regenerateCustomizer(): Unit = {
+    val lbar = new JProgressBar() {
+      setString("Loading Available Parts...")
+      setStringPainted(true)
+
+      override def getPreferredSize: Dimension = new Dimension(480, 24)
+
+      pack()
+    }
+    lbar.setMinimum(0)
+    lbar.setMaximum(12)
+
+    val loading = new JPanel() {
+      add(lbar)
+      pack()
+    }
+
+    customizerHome.removeAll()
+
+    if (carSelector.getSelectedItem.asInstanceOf[SimpleName].label != "___not_a_car") {
+      customizerHome.add(loading)
+      ebf.pack()
+      ebf.repaint()
+
+      worker.submit({ () =>
+        val customizer = newCustomizer(lbar)
+        customizerHome.removeAll()
+        customizerHome.add(customizer)
+        hybridTick.setEnabled(true)
+        ebf.pack()
+        ebf.repaint()
+      }: Runnable)
+    } else {
+      hybridTick.setEnabled(false)
+      hybridTick.setSelected(false)
       ebf.pack()
       ebf.repaint()
     }
+  }
+
+  private var oldItem: Option[SimpleName] = None
+  carSelector.addItemListener((e: ItemEvent) => {
+    val selected = carSelector.getSelectedItem.asInstanceOf[SimpleName]
+    if (
+      e.getStateChange == ItemEvent.SELECTED && (!hybridTick.isSelected || selected.label == "___not_a_car") && (oldItem.isEmpty || oldItem.get != selected)
+    ) {
+      oldItem = Some(selected)
+      regenerateCustomizer()
+    }
   })
 
-  // XXX: Workaround to force the initial set of settings to show up.
-  carSelector.setSelectedIndex(1)
-  carSelector.setSelectedIndex(0)
+  hybridTick.addItemListener((_: ItemEvent) => regenerateCustomizer())
 
   // Car customizer
-  private def newCustomizer(name: SimpleName): JPanel = new JPanel() { inner =>
-    setLayout(new GridLayout(3, 4, 2, 2))
+  private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() { inner =>
+    private def name = carSelector.getSelectedItem.asInstanceOf[SimpleName]
 
-    def byLabel[T <: SpecTable[_]](table: TableQuery[T]) =
+    val customizerLayout = new FlowLayout()
+    customizerLayout.setHgap(2)
+    customizerLayout.setVgap(2)
+
+    setLayout(customizerLayout)
+
+    def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]) =
       db.run {
         table
           .filter(_.label.like(s"%${name.label}%"))
           .result
+      }
+
+    def allWithNames[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]) =
+      db.run {
+        names
+          .join(table)
+          .on { (carName, upgrade) =>
+            upgrade.label.like((carName.label.reverseString ++ "%").reverseString ++ "%")
+          }
+          .result
+      }
+
+    def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Seq[U] =
+      if (hybridTick.isSelected) {
+        Await.result(
+          allWithNames[U, T](table).map(
+            _.map(_.asInstanceOf[(Name, U)])
+              .map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
+              .sortBy(up => (up.carName, up.category)),
+          ),
+          Duration.Inf,
+        )
+      } else {
+        Await.result(
+          byLabel[U, T](table).map(_.map(_.asInstanceOf[U]).sortBy(_.category)),
+          Duration.Inf,
+        )
       }
 
     def generateCustomizer[T <: Object: ClassTag](
@@ -85,8 +178,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await.result(byLabel(portPolishes).map(_.map(_.asInstanceOf[PortPolish])), Duration.Inf)
+      ) +: getUpgrades[PortPolish, PortPolishT](portPolishes)
     }
+    bar.setValue(1)
     val (ebs, ebp) = generateCustomizer[EngineBalance]("Engine Balancing") {
       EngineBalance(
         rowId                 = 0,
@@ -97,11 +191,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         category              = 0,
         shiftLimit            = 0,
         revLimit              = 0,
-      ) +: Await.result(
-        byLabel(engineBalances).map(_.map(_.asInstanceOf[EngineBalance])),
-        Duration.Inf,
-      )
+      ) +: getUpgrades[EngineBalance, EngineBalanceT](engineBalances)
     }
+    bar.setValue(2)
     val (dus, dup) = generateCustomizer[DisplacementUp]("Displacement Up") {
       DisplacementUp(
         rowId                 = 0,
@@ -110,11 +202,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await.result(
-        byLabel(displacementUps).map(_.map(_.asInstanceOf[DisplacementUp])),
-        Duration.Inf,
-      )
+      ) +: getUpgrades[DisplacementUp, DisplacementUpT](displacementUps)
     }
+    bar.setValue(3)
     val (exs, exp) = generateCustomizer[Muffler]("Exhaust") {
       Muffler(
         rowId                 = 0,
@@ -123,10 +213,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await
-        .result(byLabel(mufflers).map(_.map(_.asInstanceOf[Muffler])), Duration.Inf)
-        .sortBy(_.category)
+      ) +: getUpgrades[Muffler, MufflerT](mufflers)
     }
+    bar.setValue(4)
     val (ecus, ecup) = generateCustomizer[Computer]("Racing Chip") {
       Computer(
         rowId                 = 0,
@@ -135,8 +224,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await.result(byLabel(computers).map(_.map(_.asInstanceOf[Computer])), Duration.Inf)
+      ) +: getUpgrades[Computer, ComputerT](computers)
     }
+    bar.setValue(5)
     val (nas, nap) =
       generateCustomizer[NATune]("NA Tuning") {
         NATune(
@@ -148,17 +238,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           category              = 0,
           shiftLimit            = 0,
           revLimit              = 0,
-        ) +: Await
-          .result(byLabel(naTunes).map(_.map(_.asInstanceOf[NATune])), Duration.Inf)
-          .sortBy(_.category)
+        ) +: getUpgrades[NATune, NATuneT](naTunes)
       }
+    bar.setValue(6)
     val (tks, tkp) =
       generateCustomizer[TurbineKit]("Turbine Kit") {
-        val turbines = Await
-          .result(byLabel(turbineKits).map(_.map(_.asInstanceOf[TurbineKit])), Duration.Inf)
-          .sortBy(_.category)
+        val turbines = getUpgrades[TurbineKit, TurbineKitT](turbineKits)
 
-        if (turbines.exists(_.category == 0)) turbines
+        if (turbines.exists(_.category == 0) && !hybridTick.isSelected) turbines
         else
           TurbineKit(
             rowId                 = 0,
@@ -178,6 +265,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
             revLimit              = 0,
           ) +: turbines
       }
+    bar.setValue(7)
     val (ics, icp) = generateCustomizer[Intercooler]("Intercooler") {
       Intercooler(
         rowId                 = 0,
@@ -186,10 +274,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         lowRPMTorqueModifier  = 100,
         price                 = 0,
         category              = 0,
-      ) +: Await
-        .result(byLabel(intercoolers).map(_.map(_.asInstanceOf[Intercooler])), Duration.Inf)
-        .sortBy(_.category)
+      ) +: getUpgrades[Intercooler, IntercoolerT](intercoolers)
     }
+    bar.setValue(8)
     val (scs, scp) =
       generateCustomizer[Supercharger]("Supercharger") {
         Supercharger(
@@ -199,11 +286,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           lowRPMTorqueModifier  = 100,
           price                 = 0,
           category              = 0,
-        ) +: Await.result(
-          byLabel(superchargers).map(_.map(_.asInstanceOf[Supercharger])),
-          Duration.Inf,
-        )
+        ) +: getUpgrades[Supercharger, SuperchargerT](superchargers)
       }
+    bar.setValue(9)
     val (noss, nosp) = generateCustomizer[Nitrous]("Nitrous") {
       Nitrous(
         rowId          = 0,
@@ -214,8 +299,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         defaultSetting = 0,
         minSetting     = 0,
         maxSetting     = 0,
-      ) +: Await.result(byLabel(nitrouses).map(_.map(_.asInstanceOf[Nitrous])), Duration.Inf)
+      ) +: getUpgrades[Nitrous, NitrousT](nitrouses)
     }
+    bar.setValue(10)
 
     // Only allow one aspiration to be active:
     nas.addItemListener((e: ItemEvent) => {
@@ -265,11 +351,12 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
       (panel, input, label)
     }
+    bar.setValue(11)
 
     noss.addItemListener((e: ItemEvent) => {
       if (e.getStateChange == ItemEvent.SELECTED) {
         val nit = noss.getSelectedItem.asInstanceOf[Nitrous]
-        val shouldEnable = nit.label != "notapplied"
+        val shouldEnable = nit.category != 0
 
         nsi.setEnabled(shouldEnable)
 
@@ -284,85 +371,99 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       }
     })
 
-    // Row 1
-    add(ppp)
-    add(exp)
-    add(tkp)
-    add(nosp)
+    // Column 1
+    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
+      add(ppp)
+      add(ebp)
+      add(dup)
+    })
 
-    // Row 2
-    add(ebp)
-    add(ecup)
-    add(icp)
-    add(nsp)
+    // Column 2
+    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
+      add(exp)
+      add(ecup)
+      add(nap)
+    })
 
-    // Row 3
-    add(dup)
-    add(nap)
-    add(scp)
-    add(new JButton("Map Engine") {
-      addMouseListener(new MouseListener {
-        override def mouseClicked(e: MouseEvent): Unit = {
-          // Verify NOS.
-          val nos = noss.getSelectedItem.asInstanceOf[Nitrous]
-          var nosStrength: Option[Int] = None
+    // Column 3
+    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
+      add(tkp)
+      add(icp)
+      add(scp)
+    })
 
-          if (nos.label != "notapplied") {
-            val current = Try(nsi.getText.toInt).getOrElse(-1)
-            if (current < nos.minSetting || current > nos.maxSetting) {
-              JOptionPane.showMessageDialog(
-                ebf,
-                "Nitrous strength out of range or not a number!",
-                "Invalid Value",
-                JOptionPane.ERROR_MESSAGE,
-              )
-              return
+    // Column 4
+    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
+      add(nosp)
+      add(nsp)
+      add(new JButton("Map Engine") {
+        addMouseListener(new MouseListener {
+          override def mouseClicked(e: MouseEvent): Unit = {
+            // Verify NOS.
+            val nos = noss.getSelectedItem.asInstanceOf[Nitrous]
+            var nosStrength: Option[Int] = None
+
+            if (nos.category != 0) {
+              val current = Try(nsi.getText.toInt).getOrElse(-1)
+              if (current < nos.minSetting || current > nos.maxSetting) {
+                JOptionPane.showMessageDialog(
+                  ebf,
+                  "Nitrous strength out of range or not a number!",
+                  "Invalid Value",
+                  JOptionPane.ERROR_MESSAGE,
+                )
+                return
+              }
+
+              nosStrength = Some(current)
             }
 
-            nosStrength = Some(current)
+            // Build engine.
+            val builder = new EngineBuilder(
+              name,
+              Await.result(
+                db.run(
+                  engines
+                    .filter(_.label.like(s"%${name.label}%"))
+                    .result
+                    .map(_.head.asInstanceOf[Engine]),
+                ),
+                Duration.Inf,
+              ),
+            )
+
+            builder.chosenPolish         = Some(pps.getSelectedItem.asInstanceOf[PortPolish])
+            builder.chosenBalance        = Some(ebs.getSelectedItem.asInstanceOf[EngineBalance])
+            builder.chosenDisplacment    = Some(dus.getSelectedItem.asInstanceOf[DisplacementUp])
+            builder.chosenComputer       = Some(ecus.getSelectedItem.asInstanceOf[Computer])
+            builder.chosenNaTune         = Some(nas.getSelectedItem.asInstanceOf[NATune])
+            builder.chosenTurbine        = Some(tks.getSelectedItem.asInstanceOf[TurbineKit])
+            builder.chosenMuffler        = Some(exs.getSelectedItem.asInstanceOf[Muffler])
+            builder.chosenIntercooler    = Some(ics.getSelectedItem.asInstanceOf[Intercooler])
+            builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
+            builder.chosenNos            = Some(nos)
+            builder.chosenNitrousSetting = nosStrength
+            builder.withGoodOil          = oilQualityTick.isSelected
+
+            val (_, engine) = builder.buildEngine()
+            val chart = EngineGraphPanel(ebf, name, engine)
+            chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+
+            chart.pack()
+            chart.setLocationRelativeTo(null)
+            chart.setVisible(true)
           }
 
-          // Build engine.
-          val builder = new EngineBuilder(
-            name,
-            Await.result(
-              db.run(
-                engines
-                  .filter(_.label.like(s"%${name.label}%"))
-                  .result
-                  .map(_.head.asInstanceOf[Engine]),
-              ),
-              Duration.Inf,
-            ),
-          )
+          override def mousePressed(e: MouseEvent): Unit = ()
 
-          builder.chosenPolish         = Some(pps.getSelectedItem.asInstanceOf[PortPolish])
-          builder.chosenBalance        = Some(ebs.getSelectedItem.asInstanceOf[EngineBalance])
-          builder.chosenDisplacment    = Some(dus.getSelectedItem.asInstanceOf[DisplacementUp])
-          builder.chosenComputer       = Some(ecus.getSelectedItem.asInstanceOf[Computer])
-          builder.chosenNaTune         = Some(nas.getSelectedItem.asInstanceOf[NATune])
-          builder.chosenTurbine        = Some(tks.getSelectedItem.asInstanceOf[TurbineKit])
-          builder.chosenMuffler        = Some(exs.getSelectedItem.asInstanceOf[Muffler])
-          builder.chosenIntercooler    = Some(ics.getSelectedItem.asInstanceOf[Intercooler])
-          builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
-          builder.chosenNos            = Some(nos)
-          builder.chosenNitrousSetting = nosStrength
-          builder.withGoodOil          = oilQualityTick.isSelected
+          override def mouseReleased(e: MouseEvent): Unit = ()
 
-          val (_, engine) = builder.buildEngine()
-          val chart = EngineGraphPanel(ebf, name, engine)
-          chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+          override def mouseEntered(e: MouseEvent): Unit = ()
 
-          chart.pack()
-          chart.setLocationRelativeTo(null)
-          chart.setVisible(true)
-        }
-
-        override def mousePressed(e: MouseEvent): Unit = ()
-        override def mouseReleased(e: MouseEvent): Unit = ()
-        override def mouseEntered(e: MouseEvent): Unit = ()
-        override def mouseExited(e: MouseEvent): Unit = ()
+          override def mouseExited(e: MouseEvent): Unit = ()
+        })
       })
     })
+    bar.setValue(12)
   }
 }

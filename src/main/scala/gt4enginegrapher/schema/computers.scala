@@ -9,13 +9,14 @@ case class Computer(
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   price: Int,
-  category: Int,
-) extends HasTorqueRemapping {
-  override def toString: String = category match {
+  override val category: Int,
+) extends HasTorqueRemapping
+  with CanHaveCarName {
+  override def toString: String = (category match {
     case 0 => "Stock ECU"
     case 1 => "Sports ECU"
     case _ => "Invalid"
-  }
+  }) + getSuffix
 }
 
 trait ComputerProvider {
