@@ -9,16 +9,17 @@ case class EngineBalance(
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   price: Int,
-  category: Int,
+  override val category: Int,
   override val shiftLimit: Int,
   override val revLimit: Int,
 ) extends HasTorqueRemapping
-  with HasRevIncrease {
-  override def toString: String = category match {
+  with HasRevIncrease
+  with CanHaveCarName {
+  override def toString: String = (category match {
     case 0 => "Not Applied"
     case 1 => "Applied"
     case _ => "Invalid"
-  }
+  }) + getSuffix
 }
 
 trait EngineBalanceProvider {

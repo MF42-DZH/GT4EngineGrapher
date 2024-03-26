@@ -1,6 +1,18 @@
 package gt4enginegrapher.schema
 
-sealed trait Upgrade
+sealed trait Upgrade {
+  val category: Int
+}
+
+trait CanHaveCarName extends Upgrade {
+  var carName: Option[String] = None
+  def withCarName(name: String): this.type = {
+    carName = Some(name)
+    this
+  }
+
+  protected def getSuffix: String = carName.map(" (" + _ + ")").getOrElse("")
+}
 
 trait HasTorqueRemapping extends Upgrade {
   def highRPMTorqueModifier: Int
