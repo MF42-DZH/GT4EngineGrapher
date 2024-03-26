@@ -1,16 +1,16 @@
 package gt4enginegrapher
 
-import javax.swing.SwingUtilities
-
+import javax.swing.{SwingUtilities, UIManager}
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
-
 import gt4enginegrapher.schema.{AllSchema, SimpleName}
 import gt4enginegrapher.ui.{EngineBuilderFrame, EngineGraphPanel}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
+
+import javax.imageio.ImageIO
 
 object Main extends AllSchema {
   private def printHelp(): Unit = println(
@@ -49,8 +49,11 @@ object Main extends AllSchema {
 
     val allNames = Await.result(db.run(names.result).map(_.map(_.toSimpleName)), Duration.Inf)
 
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
+
     SwingUtilities.invokeLater { () =>
       val frame = new EngineBuilderFrame(allNames)
+      frame.setIconImage(ImageIO.read(Main.getClass.getResourceAsStream("/engine-analysis.png")))
       frame.pack()
       frame.setLocationRelativeTo(null)
       frame.setVisible(true)

@@ -7,7 +7,7 @@ on:
 env:
   pkg-assembly: 'GT4EngineGrapher.jar'
   pkg-name: 'gt4enginegrapher'
-  pkg-version: '0.2'
+  pkg-version: '1.0.0'
 
 jobs:
   fat:
@@ -42,14 +42,14 @@ jobs:
       with:
         name: jars
     - name: Package jar as dmg installer
-      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gt4enginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version 1.${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gt4enginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: ls
     - name: Upload dmg
       uses: actions/upload-artifact@v1
       with:
         name: dmgs
-        path: "${{ env.pkg-name }}-1.${{ env.pkg-version }}.dmg"
+        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.dmg"
   windows:
     needs: fat
     runs-on: [windows-latest]
