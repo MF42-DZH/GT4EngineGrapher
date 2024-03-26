@@ -1,11 +1,10 @@
 package gt4enginegrapher.ui
 
 import java.awt.{List => _, _}
-import java.awt.event.{ItemEvent, MouseEvent, MouseListener, WindowAdapter, WindowEvent}
+import java.awt.event._
 import java.util.concurrent.{ExecutorService, Executors}
 
 import javax.swing._
-import javax.swing.event.ChangeEvent
 
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
@@ -50,13 +49,24 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   private val hybridTick = new JCheckBox("Allow Hybriding?")
   hybridTick.setEnabled(false)
 
-  add(new JPanel() { inner =>
-    setLayout(new BoxLayout(inner, BoxLayout.LINE_AXIS))
-    add(new JLabel("Use engine of: "))
-    add(new JPanel() { split =>
-      setLayout(new BoxLayout(split, BoxLayout.LINE_AXIS)); add(carSelector); add(hybridTick);
+  add(new JPanel() {
+    val usedLayout = new FlowLayout()
+    usedLayout.setHgap(4)
+    setLayout(usedLayout)
+
+    add({
+      val label = new JLabel("Use engine of: ")
+      label.setFont(label.getFont.deriveFont(Font.BOLD))
+      label
+    })
+    add(new JPanel() {
+      setLayout(usedLayout)
+      add(carSelector)
+      add(hybridTick)
       add(oilQualityTick)
     })
+
+    setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 2))
   })
   add(customizerHome)
 
@@ -65,7 +75,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       setString("Loading Available Parts...")
       setStringPainted(true)
 
-      override def getPreferredSize: Dimension = new Dimension(480, 24)
+      override def getPreferredSize: Dimension = new Dimension(ebf.getWidth - 36, 24)
 
       pack()
     }
@@ -118,7 +128,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     private def name = carSelector.getSelectedItem.asInstanceOf[SimpleName]
 
     val customizerLayout = new FlowLayout()
-    customizerLayout.setHgap(2)
+    customizerLayout.setHgap(8)
     customizerLayout.setVgap(2)
 
     setLayout(customizerLayout)
