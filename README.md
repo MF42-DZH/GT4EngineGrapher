@@ -23,6 +23,8 @@ The graphs are powered by [JFreeChart](https://www.jfree.org/jfreechart/), and a
 
 ### Parts Picker
 
+This UI style will be system-dependent. For Linux, it assumes you have GTK+ 2.2 (or newer) installed.
+
 ![Parts Picker](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/PartsPicker.png)
 
 ### Graph
