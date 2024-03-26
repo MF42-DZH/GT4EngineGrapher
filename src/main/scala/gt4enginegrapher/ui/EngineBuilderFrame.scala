@@ -54,11 +54,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     usedLayout.setHgap(4)
     setLayout(usedLayout)
 
-    add({
+    add {
       val label = new JLabel("Use engine of: ")
       label.setFont(label.getFont.deriveFont(Font.BOLD))
       label
-    })
+    }
     add(new JPanel() {
       setLayout(usedLayout)
       add(carSelector)
@@ -173,7 +173,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       val selector = new JComboBox[T](items.toArray)
       val panel = new JPanel() { selectorPanel =>
         setLayout(new GridLayout(0, 1, 2, 0))
-        add(new JLabel(label))
+        add {
+          val heading = new JLabel(label)
+          heading.setFont(heading.getFont.deriveFont(Font.BOLD))
+          heading
+        }
         add(selector)
       }
 
