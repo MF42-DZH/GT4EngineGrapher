@@ -1,5 +1,7 @@
 # GT4 Engine Grapher
 
+[![Master Build](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
+
 This is a program trying to replicate the power/torque graphs you see in GT4 in the tuning menu.
 
 All data is sourced from the SpecDB databases of the game (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)).
