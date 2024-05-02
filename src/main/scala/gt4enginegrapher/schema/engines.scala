@@ -1,7 +1,5 @@
 package gt4enginegrapher.schema
 
-import scala.util.Try
-
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
@@ -81,8 +79,8 @@ case class Engine(
   private def scaleTorque(torque: Int): BigDecimal = BigDecimal(torque) / BigDecimal(100)
 
   lazy val toSimpleEngine: SimpleEngine = SimpleEngine(
-    label        = label,
-    torquePoints = Seq(
+    label                 = label,
+    torquePoints          = Seq(
       (scaleTorque(torqueA), scaleRpm(rpmA)),
       (scaleTorque(torqueB), scaleRpm(rpmB)),
       (scaleTorque(torqueC), scaleRpm(rpmC)),
@@ -108,9 +106,11 @@ case class Engine(
       (scaleTorque(torqueW), scaleRpm(rpmW)),
       (scaleTorque(torqueX), scaleRpm(rpmX)),
     ).filter(_._2 > 0),
-    torqueVol    = scaleTorque(torqueVol),
-    redLine      = scaleRpm(redLine),
-    revLimit     = scaleRpm(revLimit),
+    highRPMTorqueModifier = scaleTorque(torqueVol),
+    lowRPMTorqueModifier  = scaleTorque(torqueVol),
+    redLine               = scaleRpm(redLine),
+    shiftLimit            = scaleRpm(shiftLimit),
+    revLimit              = scaleRpm(revLimit),
   )
 }
 
@@ -381,12 +381,14 @@ object Engine {
 case class SimpleEngine(
   label: String,
   torquePoints: Seq[(BigDecimal, Int)],
-  torqueVol: BigDecimal,
+  highRPMTorqueModifier: BigDecimal,
+  lowRPMTorqueModifier: BigDecimal,
   redLine: Int,
+  shiftLimit: Int,
   revLimit: Int,
 ) {
   // Converts (kgf.m, RPM) => PS
-  final private val torqueToPowerConstant: BigDecimal = BigDecimal("714.25")
+  final private val torqueToPowerConstant: BigDecimal = BigDecimal("716.2")
 
   def idleRpm: Int = torquePoints.head._2
 
@@ -397,39 +399,41 @@ case class SimpleEngine(
         rpm >= r1 && rpm <= r2
       }
       .map { case ((t1, r1), (t2, r2)) =>
-        val t = BigDecimal(rpm - r1) / BigDecimal(r2 - r1)
-        (BigDecimal(1) - t) * t1 + t * t2
+        val t = unlerpRPM(r1, r2, rpm)
+        lerp(t1, t2, t)
       }
 
-  def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map(_ * torqueVol)
-
-  def rawPowerAt(rpm: Int): Option[BigDecimal] =
-    rawTorqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
+  def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map { torque =>
+    val where = unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2, rpm)
+    val umod = lerp(lowRPMTorqueModifier, highRPMTorqueModifier, where)
+    torque * umod
+  }
 
   def powerAt(rpm: Int): Option[BigDecimal] =
-    torqueAt(rpm).map(_ * BigDecimal(rpm) / torqueToPowerConstant)
+    torqueAt(rpm).map { torque =>
+      // XXX: For some reason, GT4 adds 0.5 PS to the displayed power of each car???
+      (torque * BigDecimal(rpm) / torqueToPowerConstant) + BigDecimal("0.5")
+    }
 
   private def unlerpRPM(lower: Int, upper: Int, where: Int): BigDecimal =
-    BigDecimal(where - lower) / BigDecimal(upper - lower).abs
+    (BigDecimal(where - lower) / BigDecimal(upper - lower)).abs
 
   private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
-    (BigDecimal(1) - where) * lower + where * upper
+    lower + (where * (upper - lower))
+//    ((BigDecimal(1) - where) * lower + where * upper).setScale(2, BigDecimal.RoundingMode.DOWN)
 
   def remapEngine(
     mod1: BigDecimal,
     mod2: BigDecimal,
   ): SimpleEngine =
     SimpleEngine(
-      label        = label,
-      torquePoints = torquePoints.map { case (t, rpm) =>
-        val where = unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2, rpm)
-        val umod = lerp(mod2, mod1, where)
-
-        (t * umod, rpm)
-      },
-      torqueVol    = torqueVol,
-      redLine      = redLine,
-      revLimit     = revLimit,
+      label                 = label,
+      torquePoints          = torquePoints,
+      highRPMTorqueModifier = highRPMTorqueModifier * mod1,
+      lowRPMTorqueModifier  = lowRPMTorqueModifier * mod2,
+      redLine               = redLine,
+      shiftLimit            = shiftLimit,
+      revLimit              = revLimit,
     )
 }
 
