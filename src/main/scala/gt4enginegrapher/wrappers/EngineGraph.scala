@@ -23,6 +23,11 @@ class EngineGraph(engine: SimpleEngine) {
     val max = points.filter(_._1 < engine.revLimit).maxBy(p => (p._2._2, p._1))
     (max._1, max._2._2)
   }
+
+//  println(
+//    s"""PEAK TORQUE: $peakTorque -> ${engine.powerAt(peakTorque._1)}
+//       | PEAK POWER: $peakPower -> ${engine.torqueAt(peakPower._1)}
+//       |""".stripMargin)
 }
 
 object EngineGraph {
