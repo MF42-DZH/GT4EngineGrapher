@@ -21,7 +21,7 @@ The grapher can be run as a standalone program with no arguments, but launching 
 
 ## Used Libraries
 
-Reading the SpecDB SQLite databases is done using [Slick](https://scala-slick.org/) and an SQLite JDBC driver.
+Reading the SpecDB SQLite databases is done using [Slick](https://scala-slick.org/) and [xerial/sqlite-jdbc](https://github.com/xerial/sqlite-jdbc).
 
 The graphs are powered by [JFreeChart](https://www.jfree.org/jfreechart/), and as such, you can right-click on the chart and save an image of the chart.
 

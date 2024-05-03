@@ -406,7 +406,8 @@ case class SimpleEngine(
   def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map { torque =>
     val where = unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2, rpm)
     val umod = lerp(lowRPMTorqueModifier, highRPMTorqueModifier, where)
-    torque * umod
+    val total = torque * umod
+    total
   }
 
   def powerAt(rpm: Int): Option[BigDecimal] =
@@ -420,7 +421,6 @@ case class SimpleEngine(
 
   private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
     lower + (where * (upper - lower))
-//    ((BigDecimal(1) - where) * lower + where * upper).setScale(2, BigDecimal.RoundingMode.DOWN)
 
   def remapEngine(
     mod1: BigDecimal,

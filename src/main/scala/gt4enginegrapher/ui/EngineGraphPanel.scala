@@ -140,25 +140,25 @@ case class EngineGraphPanel(
     val Some(torqueAt) = (0 until torque.getItemCount)
       .map(torque.getDataItem)
       .find(item => item.getX.intValue() == crosshair.getValue.toInt)
-      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP))
+      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.DOWN))
     val Some(powerAt) = (0 until power.getItemCount)
       .map(power.getDataItem)
       .find(item => item.getX.intValue() == crosshair.getValue.toInt)
-      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.HALF_UP))
+      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.DOWN))
 
     s" $torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM "
   })
 
   peakTCrosshair.setLabelGenerator { _ =>
     val (rpm, t) = rawGraphData.peakTorque
-    s" ${t.setScale(2, BigDecimal.RoundingMode.HALF_UP)} kgf.m @ $rpm RPM "
+    s" ${t.setScale(2, BigDecimal.RoundingMode.DOWN)} kgf.m @ $rpm RPM "
   }
 
   peakTCrosshair.setValue(rawGraphData.peakTorque._1)
 
   peakPCrosshair.setLabelGenerator { _ =>
     val (rpm, p) = rawGraphData.peakPower
-    s" ${p.setScale(2, BigDecimal.RoundingMode.HALF_UP)} PS @ $rpm RPM "
+    s" ${p.setScale(2, BigDecimal.RoundingMode.DOWN)} PS @ $rpm RPM "
   }
 
   peakPCrosshair.setValue(rawGraphData.peakPower._1)
