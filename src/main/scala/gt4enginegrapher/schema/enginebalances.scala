@@ -8,7 +8,7 @@ case class EngineBalance(
   label: String,
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
-  price: Int,
+  override val price: Int,
   override val category: Int,
   override val shiftLimit: Int,
   override val revLimit: Int,

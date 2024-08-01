@@ -7,6 +7,7 @@ case class Nitrous(
   rowId: Int,
   label: String,
   _unused: Int,
+  override val price: Int,
   capacity: Int,
   override val category: Int,
   defaultSetting: Int,
@@ -14,7 +15,8 @@ case class Nitrous(
   maxSetting: Int,
 ) extends CanHaveCarName {
   def toUsedNitrous(setting: Int): Option[UsedNitrous] = setting match {
-    case s if s >= minSetting && s <= maxSetting => Some(UsedNitrous(this, setting, category))
+    case s if s >= minSetting && s <= maxSetting =>
+      Some(UsedNitrous(this, setting, price, category))
     case _                                       => None
   }
 
@@ -28,6 +30,7 @@ case class Nitrous(
 case class UsedNitrous(
   specs: Nitrous,
   setting: Int,
+  override val price: Int,
   override val category: Int,
 ) extends HasTorqueRemapping {
   override def highRPMTorqueModifier: Int = 100 + setting
@@ -50,6 +53,7 @@ trait NitrousProvider {
         label,
         _unused,
         price,
+        capacity,
         category,
         defaultSetting,
         minSetting,

@@ -8,7 +8,7 @@ case class DisplacementUp(
   label: String,
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
-  price: Int,
+  override val price: Int,
   override val category: Int,
 ) extends HasTorqueRemapping
   with CanHaveCarName {

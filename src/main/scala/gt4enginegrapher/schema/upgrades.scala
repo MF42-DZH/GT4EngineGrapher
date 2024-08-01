@@ -2,6 +2,7 @@ package gt4enginegrapher.schema
 
 sealed trait Upgrade {
   val category: Int
+  val price: Int
 }
 
 trait CanHaveCarName extends Upgrade {
@@ -21,9 +22,9 @@ trait CanHaveCarName extends Upgrade {
     carName
       .map(name => {
         this match {
-          case htm: CanHaveCarName with HasTorqueRemapping =>
+          case _: CanHaveCarName with HasTorqueRemapping =>
             s" ($name; $extra)"
-          case _                                           => s" ($name)"
+          case _                                         => s" ($name)"
         }
       })
       .getOrElse(if (extra.isBlank) "" else s" ($extra)")

@@ -28,10 +28,10 @@ class EngineGraph(engine: SimpleEngine) {
     (max._1, max._2._2)
   }
 
-  println(
-    s"""PEAK TORQUE: $peakTorque -> ${engine.powerAt(peakTorque._1)}
-       | PEAK POWER: $peakPower -> ${engine.torqueAt(peakPower._1)}
-       |""".stripMargin)
+//  println(
+//    s"""PEAK TORQUE: $peakTorque -> ${engine.powerAt(peakTorque._1)}
+//       | PEAK POWER: $peakPower -> ${engine.torqueAt(peakPower._1)}
+//       |""".stripMargin)
 }
 
 object EngineGraph {

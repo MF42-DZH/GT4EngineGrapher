@@ -6,12 +6,13 @@ import java.util.concurrent.{ExecutorService, Executors}
 
 import javax.swing._
 
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
 import scala.util.Try
 
 import gt4enginegrapher.schema._
+import gt4enginegrapher.utils.SlickEscapes
 import gt4enginegrapher.wrappers.EngineBuilder
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
@@ -20,7 +21,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   schema: AllSchema,
   db: JdbcDatabaseDef,
   ec: ExecutionContext,
-) extends JFrame { ebf =>
+) extends JFrame
+  with SlickEscapes { ebf =>
   import schema._
   private val worker: ExecutorService = Executors.newSingleThreadExecutor()
 
@@ -37,6 +39,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   })
 
   private val customizerHome = new JPanel()
+  private val listeners = new java.util.ArrayDeque[KeyEventPostProcessor](2)
 
   // Car selector
   private val carSelector = new JComboBox[SimpleName](
@@ -114,7 +117,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   carSelector.addItemListener((e: ItemEvent) => {
     val selected = carSelector.getSelectedItem.asInstanceOf[SimpleName]
     if (
-      e.getStateChange == ItemEvent.SELECTED && (!hybridTick.isSelected || selected.label == "___not_a_car") && (oldItem.isEmpty || oldItem.get != selected)
+      (e.getStateChange == ItemEvent.SELECTED) &&
+      (!hybridTick.isSelected || selected.label == "___not_a_car") &&
+      (oldItem.isEmpty || oldItem.get != selected)
     ) {
       oldItem = Some(selected)
       regenerateCustomizer()
@@ -133,14 +138,16 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     setLayout(customizerLayout)
 
-    def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]) =
+    def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Future[Seq[U]] =
       db.run {
         table
           .filter(_.label.like(s"%${name.label}%"))
           .result
       }
 
-    def allWithNames[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]) =
+    def allWithNames[U <: CanHaveCarName, T <: SpecTable[U]](
+      table: TableQuery[T],
+    ): Future[Seq[(Name, U)]] =
       db.run {
         names
           .join(table)
@@ -154,15 +161,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       if (hybridTick.isSelected) {
         Await.result(
           allWithNames[U, T](table).map(
-            _.map(_.asInstanceOf[(Name, U)])
-              .map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
-              .sortBy(up => (up.carName, up.category)),
+            _.map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
+              .sortBy((up: U) => (up.carName, up.category)),
           ),
           Duration.Inf,
         )
       } else {
         Await.result(
-          byLabel[U, T](table).map(_.map(_.asInstanceOf[U]).sortBy(_.category)),
+          byLabel[U, T](table).map(_.sortBy(_.category)),
           Duration.Inf,
         )
       }
@@ -171,7 +177,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       label: String,
     )(items: => Seq[T]): (JComboBox[T], JPanel) = {
       val selector = new JComboBox[T](items.toArray)
-      val panel = new JPanel() { selectorPanel =>
+      val panel = new JPanel() {
         setLayout(new GridLayout(0, 1, 2, 0))
         add {
           val heading = new JLabel(label)
@@ -309,6 +315,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         label          = "notapplied",
         _unused        = 0,
         capacity       = 0,
+        price          = 0,
         category       = 0,
         defaultSetting = 0,
         minSetting     = 0,
@@ -410,70 +417,145 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     add(new JPanel(new GridLayout(0, 1, 0, 2)) {
       add(nosp)
       add(nsp)
-      add(new JButton("Map Engine") {
-        addMouseListener(new MouseListener {
-          override def mouseClicked(e: MouseEvent): Unit = {
-            // Verify NOS.
-            val nos = noss.getSelectedItem.asInstanceOf[Nitrous]
-            var nosStrength: Option[Int] = None
+      add(new JButton("Map Engine") { button =>
+        private def showChart(): Unit = {
+          // Verify NOS.
+          val nos = noss.getSelectedItem.asInstanceOf[Nitrous]
+          var nosStrength: Option[Int] = None
 
-            if (nos.category != 0) {
-              val current = Try(nsi.getText.toInt).getOrElse(-1)
-              if (current < nos.minSetting || current > nos.maxSetting) {
-                JOptionPane.showMessageDialog(
-                  ebf,
-                  "Nitrous strength out of range or not a number!",
-                  "Invalid Value",
-                  JOptionPane.ERROR_MESSAGE,
-                )
-                return
-              }
-
-              nosStrength = Some(current)
+          if (nos.category != 0) {
+            val current = Try(nsi.getText.toInt).getOrElse(-1)
+            if (current < nos.minSetting || current > nos.maxSetting) {
+              JOptionPane.showMessageDialog(
+                ebf,
+                "Nitrous strength out of range or not a number!",
+                "Invalid Value",
+                JOptionPane.ERROR_MESSAGE,
+              )
+              return
             }
 
-            // Build engine.
-            val builder = new EngineBuilder(
-              name,
-              Await.result(
-                db.run(
-                  engines
-                    .filter(_.label.like(s"%${name.label}%"))
-                    .result
-                    .map(_.head.asInstanceOf[Engine]),
-                ),
-                Duration.Inf,
-              ),
-            )
-
-            builder.chosenPolish         = Some(pps.getSelectedItem.asInstanceOf[PortPolish])
-            builder.chosenBalance        = Some(ebs.getSelectedItem.asInstanceOf[EngineBalance])
-            builder.chosenDisplacment    = Some(dus.getSelectedItem.asInstanceOf[DisplacementUp])
-            builder.chosenComputer       = Some(ecus.getSelectedItem.asInstanceOf[Computer])
-            builder.chosenNaTune         = Some(nas.getSelectedItem.asInstanceOf[NATune])
-            builder.chosenTurbine        = Some(tks.getSelectedItem.asInstanceOf[TurbineKit])
-            builder.chosenMuffler        = Some(exs.getSelectedItem.asInstanceOf[Muffler])
-            builder.chosenIntercooler    = Some(ics.getSelectedItem.asInstanceOf[Intercooler])
-            builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
-            builder.chosenNos            = Some(nos)
-            builder.chosenNitrousSetting = nosStrength
-            builder.withGoodOil          = oilQualityTick.isSelected
-
-            val (_, engine) = builder.buildEngine()
-            val chart = EngineGraphPanel(ebf, name, engine)
-            chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-
-            chart.pack()
-            chart.setLocationRelativeTo(null)
-            chart.setVisible(true)
+            nosStrength = Some(current)
           }
 
+          // Build engine.
+          val builder = new EngineBuilder(
+            name,
+            Await.result(
+              db.run(
+                engines
+                  .filter(_.label.like(s"%${name.label}%"))
+                  .result
+                  .map(_.head),
+              ),
+              Duration.Inf,
+            ),
+          )
+
+          builder.chosenPolish         = Some(pps.getSelectedItem.asInstanceOf[PortPolish])
+          builder.chosenBalance        = Some(ebs.getSelectedItem.asInstanceOf[EngineBalance])
+          builder.chosenDisplacment    = Some(dus.getSelectedItem.asInstanceOf[DisplacementUp])
+          builder.chosenComputer       = Some(ecus.getSelectedItem.asInstanceOf[Computer])
+          builder.chosenNaTune         = Some(nas.getSelectedItem.asInstanceOf[NATune])
+          builder.chosenTurbine        = Some(tks.getSelectedItem.asInstanceOf[TurbineKit])
+          builder.chosenMuffler        = Some(exs.getSelectedItem.asInstanceOf[Muffler])
+          builder.chosenIntercooler    = Some(ics.getSelectedItem.asInstanceOf[Intercooler])
+          builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
+          builder.chosenNos            = Some(nos)
+          builder.chosenNitrousSetting = nosStrength
+          builder.withGoodOil          = oilQualityTick.isSelected
+
+          val (_, engine) = builder.buildEngine()
+          val chart = EngineGraphPanel(ebf, name, engine)
+          chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+
+          chart.pack()
+          chart.setLocationRelativeTo(null)
+          chart.setVisible(true)
+        }
+
+        private def showShoppingList(): Unit = {
+          def collectUpgrade[U <: Upgrade](cb: JComboBox[U], name: String): Option[(String, U)] =
+            Option.when(cb.getSelectedItem.asInstanceOf[U].category > 0)(
+              (name, cb.getSelectedItem.asInstanceOf[U]),
+            )
+
+          val primaryPowerUpgrade: Seq[(String, Upgrade)] = Seq(
+            collectUpgrade[TurbineKit](tks, "Turbo"),
+            collectUpgrade[Supercharger](scs, "Supercharger"),
+            collectUpgrade[NATune](nas, "NA Tuning"),
+          ).flatten
+
+          val supplementaryParts: Seq[(String, Upgrade)] = Seq(
+            collectUpgrade[PortPolish](pps, "Port Polish"),
+            collectUpgrade[EngineBalance](ebs, "Engine Balancing"),
+            collectUpgrade[Muffler](exs, "Exhaust & Air Cleaner"),
+            collectUpgrade[Intercooler](ics, "Intercooler"),
+            collectUpgrade[Computer](ecus, "Racing Chip"),
+            collectUpgrade[DisplacementUp](dus, "Displacement Up"),
+            collectUpgrade[Nitrous](noss, "Nitrous"),
+          ).flatten
+
+          val shoppingList = new ShoppingList(
+            ebf,
+            Map(
+              "Primary Power Part"  -> primaryPowerUpgrade,
+              "Supplementary Parts" -> supplementaryParts,
+              "Oil Change"          -> Option
+                .when(oilQualityTick.isSelected)(
+                  (
+                    "New Oil",
+                    new HasTorqueRemapping {
+                      override def highRPMTorqueModifier: Int = 105
+                      override def lowRPMTorqueModifier: Int = 105
+
+                      override val category: Int = 1
+                      override val price: Int = 50
+
+                      override def toString: String = "Applied"
+                    },
+                  ),
+                )
+                .toSeq,
+            ).filter(_._2.iterator.nonEmpty),
+            name,
+          )
+
+          shoppingList.pack()
+          shoppingList.setLocationRelativeTo(null)
+          shoppingList.setResizable(false)
+          shoppingList.setVisible(true)
+        }
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager.addKeyEventPostProcessor {
+          val listener = new KeyEventPostProcessor {
+            override def postProcessKeyEvent(e: KeyEvent): Boolean = {
+              if (e.isShiftDown) button.setText("Get Shopping List")
+              else if (!e.isShiftDown) button.setText("Map Engine")
+
+              true
+            }
+          }
+
+          Option(listeners.poll()) match {
+            case Some(old) =>
+              KeyboardFocusManager.getCurrentKeyboardFocusManager.removeKeyEventPostProcessor(old)
+            case None      => ()
+          }
+
+          listeners.add(listener)
+
+          listener
+        }
+
+        addMouseListener(new MouseListener {
+          override def mouseClicked(e: MouseEvent): Unit =
+            if (e.isShiftDown) showShoppingList()
+            else showChart()
+
           override def mousePressed(e: MouseEvent): Unit = ()
-
           override def mouseReleased(e: MouseEvent): Unit = ()
-
           override def mouseEntered(e: MouseEvent): Unit = ()
-
           override def mouseExited(e: MouseEvent): Unit = ()
         })
       })

@@ -6,7 +6,7 @@ import slick.lifted.ProvenShape
 case class TurbineKit(
   rowId: Int,
   label: String,
-  price: Int,
+  override val price: Int,
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   override val category: Int,
