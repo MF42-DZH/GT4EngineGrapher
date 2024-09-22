@@ -5,9 +5,9 @@ on:
     branches: [ master ] 
 
 env:
-  pkg-assembly: 'GT4EngineGrapher.jar'
-  pkg-name: 'gt4enginegrapher'
-  pkg-version: '1.1.0'
+  pkg-assembly: 'GTEngineGrapher.jar'
+  pkg-name: 'gtenginegrapher'
+  pkg-version: '1.2.0'
 
 jobs:
   fat:
@@ -42,7 +42,7 @@ jobs:
       with:
         name: jars
     - name: Package jar as dmg installer
-      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gt4enginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: ls
     - name: Upload dmg
@@ -65,7 +65,7 @@ jobs:
       with:
         name: jars
     - name: Package jar as msi
-      run: "jpackage --name ${{ env.pkg-name }} --type msi -i jars --main-class gt4enginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} --type msi -i jars --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: dir
     - name: Upload installer
@@ -88,7 +88,7 @@ jobs:
       with:
         name: jars
     - name: Package jar as debian package
-      run: "jpackage --name ${{ env.pkg-name }} --type deb -i jars --main-class gt4enginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} --type deb -i jars --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: ls
     - name: Upload deb

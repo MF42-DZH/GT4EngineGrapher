@@ -1,4 +1,4 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
 sealed trait Upgrade {
   val category: Int
@@ -47,5 +47,5 @@ trait HasRevIncrease extends Upgrade {
   def revLimit: Int
 
   def remapRevs(se: SimpleEngine): SimpleEngine =
-    se.copy(torquePoints = se.torquePoints.map { case (t, r) => (t, r + revLimit * 100) })
+    se.copy(torquePoints = se.torquePoints.map { case (t, r) => (t, r + shiftLimit * 100) })
 }

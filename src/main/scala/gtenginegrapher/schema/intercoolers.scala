@@ -1,4 +1,4 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
@@ -20,11 +20,27 @@ case class Intercooler(
   }) + getSuffix
 }
 
-trait IntercoolerProvider {
-  class IntercoolerT(tag: Tag) extends UpgradeTable[Intercooler](tag, "INTERCOOLER") {
+trait GT4IntercoolerProvider {
+  class IntercoolerT(tag: Tag) extends GT4UpgradeTable[Intercooler](tag, "INTERCOOLER") {
     override def * : ProvenShape[Intercooler] =
       (
         rowId,
+        label,
+        highRPMTorqueModifier,
+        lowRPMTorqueModifier,
+        price,
+        category,
+      ) <> ((Intercooler.apply _).tupled, Intercooler.unapply)
+  }
+
+  lazy val intercoolers = TableQuery[IntercoolerT]
+}
+
+trait GT3IntercoolerProvider {
+  class IntercoolerT(tag: Tag) extends GT3UpgradeTable[Intercooler](tag, "INTERCOOLER") {
+    override def * : ProvenShape[Intercooler] =
+      (
+        LiteralColumn(0),
         label,
         highRPMTorqueModifier,
         lowRPMTorqueModifier,

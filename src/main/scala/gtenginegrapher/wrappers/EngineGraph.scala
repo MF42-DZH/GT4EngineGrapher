@@ -1,6 +1,6 @@
-package gt4enginegrapher.wrappers
+package gtenginegrapher.wrappers
 
-import gt4enginegrapher.schema.{Engine, SimpleEngine}
+import gtenginegrapher.schema.{Engine, SimpleEngine}
 
 class EngineGraph(engine: SimpleEngine) {
   implicit private class Rounding(bd: BigDecimal) {

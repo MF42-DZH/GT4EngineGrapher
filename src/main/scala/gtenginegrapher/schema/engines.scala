@@ -1,5 +1,6 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
+import gtenginegrapher.utils.CommonMathOps
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
@@ -386,7 +387,7 @@ case class SimpleEngine(
   redLine: Int,
   shiftLimit: Int,
   revLimit: Int,
-) {
+) extends CommonMathOps {
   // Converts (kgf.m, RPM) => PS
   final private val torqueToPowerConstant: BigDecimal = BigDecimal("716.2")
 
@@ -419,9 +420,6 @@ case class SimpleEngine(
   private def unlerpRPM(lower: Int, upper: Int, where: Int): BigDecimal =
     (BigDecimal(where - lower) / BigDecimal(upper - lower)).abs
 
-  private def lerp(lower: BigDecimal, upper: BigDecimal, where: BigDecimal): BigDecimal =
-    lower + (where * (upper - lower))
-
   def remapEngine(
     mod1: BigDecimal,
     mod2: BigDecimal,
@@ -437,8 +435,8 @@ case class SimpleEngine(
     )
 }
 
-trait EngineProvider {
-  class EngineT(tag: Tag) extends SpecTable[Engine](tag, "ENGINE") {
+trait GT4EngineProvider {
+  class EngineT(tag: Tag) extends GT4SpecTable[Engine](tag, "ENGINE") {
     def displacement = column[String]("discplacement")
     def engineType = column[String]("enginetype")
     def cam = column[String]("cam")
@@ -580,6 +578,135 @@ trait EngineProvider {
         meterScale,
         torqueVol,
         gasConsumptionRate,
+      ) <> ((Engine.ofTuple _).tupled, Engine.destructure)
+  }
+
+  lazy val engines = TableQuery[EngineT]
+}
+
+trait GT3EngineProvider {
+  class EngineT(tag: Tag) extends GT3SpecTable[Engine](tag, "ENGINE") {
+    def displacement = column[String]("displacement")
+    def engineType = column[String]("enginetype")
+    def cam = column[String]("cam")
+    def aspiration = column[String]("aspiration")
+    def psRpm = column[String]("psrpm")
+    def torqueRpm = column[String]("torquerpm")
+    def soundNum = column[Int]("soundNum")
+    def psValue = column[Int]("psvalue")
+    def torqueValue = column[Int]("torquevalue")
+    def torqueA = column[Int]("torqueA")
+    def torqueB = column[Int]("torqueB")
+    def torqueC = column[Int]("torqueC")
+    def torqueD = column[Int]("torqueD")
+    def torqueE = column[Int]("torqueE")
+    def torqueF = column[Int]("torqueF")
+    def torqueG = column[Int]("torqueG")
+    def torqueH = column[Int]("torqueH")
+    def torqueI = column[Int]("torqueI")
+    def torqueJ = column[Int]("torqueJ")
+    def torqueK = column[Int]("torqueK")
+    def torqueL = column[Int]("torqueL")
+    def torqueM = column[Int]("torqueM")
+    def torqueN = column[Int]("torqueN")
+    def torqueO = column[Int]("torqueO")
+    def torqueP = column[Int]("torqueP")
+    def shiftLimit = column[Int]("shiftlimit")
+    def revLimit = column[Int]("revlimit")
+    def unk = column[Int]("idlerpm")
+    def clutchMeetRpm = column[Int]("clutchmeetrpm")
+    def torquePoint = column[Int]("torquepoint")
+    def rpmA = column[Int]("rpmA")
+    def rpmB = column[Int]("rpmB")
+    def rpmC = column[Int]("rpmC")
+    def rpmD = column[Int]("rpmD")
+    def rpmE = column[Int]("rpmE")
+    def rpmF = column[Int]("rpmF")
+    def rpmG = column[Int]("rpmG")
+    def rpmH = column[Int]("rpmH")
+    def rpmI = column[Int]("rpmI")
+    def rpmJ = column[Int]("rpmJ")
+    def rpmK = column[Int]("rpmK")
+    def rpmL = column[Int]("rpmL")
+    def rpmM = column[Int]("rpmM")
+    def rpmN = column[Int]("rpmN")
+    def rpmO = column[Int]("rpmO")
+    def rpmP = column[Int]("rpmP")
+    def redLine = column[Int]("shiftlimit")
+    def torqueVol = column[Int]("torquemul")
+
+    override def * : ProvenShape[Engine] =
+      (
+        LiteralColumn(0),
+        label,
+        (displacement, engineType, cam, aspiration, psRpm, torqueRpm),
+        soundNum,
+        psValue,
+        torqueValue,
+        (
+          torqueA,
+          torqueB,
+          torqueC,
+          torqueD,
+          torqueE,
+          torqueF,
+          torqueG,
+          torqueH,
+          torqueI,
+          torqueJ,
+          torqueK,
+          torqueL,
+        ),
+        (
+          torqueM,
+          torqueN,
+          torqueO,
+          torqueP,
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+        ),
+        LiteralColumn(0),
+        LiteralColumn(0),
+        (shiftLimit, revLimit, unk, clutchMeetRpm),
+        torquePoint,
+        (
+          rpmA,
+          rpmB,
+          rpmC,
+          rpmD,
+          rpmE,
+          rpmF,
+          rpmG,
+          rpmH,
+          rpmI,
+          rpmJ,
+          rpmK,
+          rpmL,
+        ),
+        (
+          rpmM,
+          rpmN,
+          rpmO,
+          rpmP,
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+          LiteralColumn(0),
+        ),
+        redLine,
+        LiteralColumn(0),
+        torqueVol,
+        LiteralColumn(0),
       ) <> ((Engine.ofTuple _).tupled, Engine.destructure)
   }
 

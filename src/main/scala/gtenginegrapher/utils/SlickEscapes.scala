@@ -1,4 +1,4 @@
-package gt4enginegrapher.utils
+package gtenginegrapher.utils
 
 import scala.language.implicitConversions
 

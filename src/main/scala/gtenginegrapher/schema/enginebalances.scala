@@ -1,4 +1,4 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
@@ -22,9 +22,9 @@ case class EngineBalance(
   }) + getSuffix
 }
 
-trait EngineBalanceProvider {
+trait GT4EngineBalanceProvider {
   class EngineBalanceT(tag: Tag)
-    extends UpgradeTableWithRevModifiers[EngineBalance](
+    extends GT4UpgradeTableWithRevModifiers[EngineBalance](
       tag            = tag,
       name           = "ENGINEBALANCE",
       shiftLimitName = "Unk",
@@ -33,6 +33,30 @@ trait EngineBalanceProvider {
     override def * : ProvenShape[EngineBalance] =
       (
         rowId,
+        label,
+        highRPMTorqueModifier,
+        lowRPMTorqueModifier,
+        price,
+        category,
+        shiftLimit,
+        revLimit,
+      ) <> ((EngineBalance.apply _).tupled, EngineBalance.unapply)
+  }
+
+  lazy val engineBalances = TableQuery[EngineBalanceT]
+}
+
+trait GT3EngineBalanceProvider {
+  class EngineBalanceT(tag: Tag)
+    extends GT3UpgradeTableWithRevModifiers[EngineBalance](
+      tag            = tag,
+      name           = "ENGINEBALANCE",
+      shiftLimitName = "rpmPointsModifier",
+      revLimitName   = "revlimitModifier",
+    ) {
+    override def * : ProvenShape[EngineBalance] =
+      (
+        LiteralColumn(0),
         label,
         highRPMTorqueModifier,
         lowRPMTorqueModifier,

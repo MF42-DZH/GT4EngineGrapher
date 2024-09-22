@@ -1,11 +1,11 @@
-package gt4enginegrapher.ui
+package gtenginegrapher.ui
 
 import java.awt.{BasicStroke, Color, Dimension, Font}
 
 import javax.swing.{JDialog, JFrame}
 
-import gt4enginegrapher.schema.{SimpleEngine, SimpleName}
-import gt4enginegrapher.wrappers.EngineGraph
+import gtenginegrapher.schema.{SimpleEngine, SimpleName}
+import gtenginegrapher.wrappers.EngineGraph
 import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.entity.XYItemEntity

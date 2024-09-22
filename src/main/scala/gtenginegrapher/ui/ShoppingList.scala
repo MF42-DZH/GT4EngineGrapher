@@ -1,4 +1,4 @@
-package gt4enginegrapher.ui
+package gtenginegrapher.ui
 
 import java.awt.{Graphics2D, Image, RenderingHints}
 import java.awt.image.BufferedImage
@@ -8,8 +8,8 @@ import javax.swing.{ImageIcon, JDialog, JFrame, JTree}
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree._
 
-import gt4enginegrapher.schema._
-import gt4enginegrapher.Main
+import gtenginegrapher.schema._
+import gtenginegrapher.Main
 
 class ShoppingList(
   owner: JFrame,

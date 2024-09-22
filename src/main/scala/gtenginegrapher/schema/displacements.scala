@@ -1,4 +1,4 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
@@ -19,11 +19,27 @@ case class DisplacementUp(
   }) + getSuffix
 }
 
-trait DisplacementUpProvider {
-  class DisplacementUpT(tag: Tag) extends UpgradeTable[DisplacementUp](tag, "DISPLACEMENT") {
+trait GT4DisplacementUpProvider {
+  class DisplacementUpT(tag: Tag) extends GT4UpgradeTable[DisplacementUp](tag, "DISPLACEMENT") {
     override def * : ProvenShape[DisplacementUp] =
       (
         rowId,
+        label,
+        highRPMTorqueModifier,
+        lowRPMTorqueModifier,
+        price,
+        category,
+      ) <> ((DisplacementUp.apply _).tupled, DisplacementUp.unapply)
+  }
+
+  lazy val displacementUps = TableQuery[DisplacementUpT]
+}
+
+trait GT3DisplacementUpProvider {
+  class DisplacementUpT(tag: Tag) extends GT3UpgradeTable[DisplacementUp](tag, "DISPLACEMENT") {
+    override def * : ProvenShape[DisplacementUp] =
+      (
+        LiteralColumn(0),
         label,
         highRPMTorqueModifier,
         lowRPMTorqueModifier,

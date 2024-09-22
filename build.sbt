@@ -1,10 +1,10 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version      := "1.1.0"
-ThisBuild / scalaVersion := "2.13.13"
+ThisBuild / version      := "1.2.0"
+ThisBuild / scalaVersion := "2.13.14"
 
 lazy val sbtAssemblySettings = baseAssemblySettings ++ Seq(
-  assembly / assemblyOutputPath    := baseDirectory.value / "GT4EngineGrapher.jar",
+  assembly / assemblyOutputPath    := baseDirectory.value / "GTEngineGrapher.jar",
   assembly / assemblyMergeStrategy := {
     case PathList("META-INF", _*) => MergeStrategy.discard
     case _                        => MergeStrategy.first
@@ -13,13 +13,13 @@ lazy val sbtAssemblySettings = baseAssemblySettings ++ Seq(
 
 lazy val root = (project in file("."))
   .settings(
-    name                 := "GT4EngineGrapher",
+    name                 := "GTEngineGrapher",
     sbtAssemblySettings,
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick"          % "3.5.1",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.1",
       "org.slf4j"           % "slf4j-simple"   % "2.0.13",
-      "org.xerial"          % "sqlite-jdbc"    % "3.45.3.0",
-      "org.jfree"           % "jfreechart"     % "1.5.4",
+      "org.xerial"          % "sqlite-jdbc"    % "3.46.0.0",
+      "org.jfree"           % "jfreechart"     % "1.5.5",
     ),
   )
