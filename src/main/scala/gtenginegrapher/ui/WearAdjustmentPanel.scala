@@ -6,11 +6,7 @@ import java.awt.event.{MouseEvent, MouseListener, WindowEvent}
 import javax.swing._
 
 import gtenginegrapher.schema.{AllSchema, GT3AllSchema, GT4AllSchema, SimpleName}
-import gtenginegrapher.wrappers.{
-  WearAffectedByPrizeStatus,
-  WearUnaffectedByPrizeStatus,
-  WearValues,
-}
+import gtenginegrapher.wrappers.{WearAffectedByPrizeStatus, WearUnaffectedByPrizeStatus, WearValues}
 
 class WearAdjustmentPanel(
   owner: JFrame,

@@ -1,4 +1,4 @@
-# GT Engine Grapher
+# Gran Turismo Engine Grapher
 
 [![Master Build](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
 
@@ -10,7 +10,7 @@ Currently, torque and power units are fixed to `kgf.m` and `PS` respectively.
 
 ### High Priority Issues
 
-- [https://github.com/MF42-DZH/GT4EngineGrapher/issues/8](https://github.com/MF42-DZH/GT4EngineGrapher/issues/8)
+- https://github.com/MF42-DZH/GT4EngineGrapher/issues/8
 
 ### Usage
 
