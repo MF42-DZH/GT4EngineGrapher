@@ -51,12 +51,12 @@ object Main {
             }
             .getOrElse(gt4Schema.usDb)
 
-        (gt4Schema.asBase, udb, GT3Wear.asBase)
+        (gt4Schema.asBase, udb, GT4Wear.asBase)
       } else {
         val gt3Schema: GT3AllSchema = new GT3AllSchema
         val udb = gt3Schema.usDb
 
-        (gt3Schema.asBase, udb, GT4Wear.asBase)
+        (gt3Schema.asBase, udb, GT3Wear.asBase)
       }
 
     import schema._

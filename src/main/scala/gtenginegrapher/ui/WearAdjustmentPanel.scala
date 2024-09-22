@@ -26,8 +26,8 @@ class WearAdjustmentPanel(
     }
 
     wear match {
-      case _: WearAffectedByPrizeStatus => car.setEnabled(false)
-      case _                            => car.setEnabled(true)
+      case _: WearUnaffectedByPrizeStatus => car.setEnabled(false)
+      case _                              => car.setEnabled(true)
     }
 
     val panel = new JPanel {
