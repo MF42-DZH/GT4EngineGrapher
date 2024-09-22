@@ -1,6 +1,6 @@
-package gt4enginegrapher.wrappers
+package gtenginegrapher.wrappers
 
-import gt4enginegrapher.schema._
+import gtenginegrapher.schema._
 
 class EngineBuilder(val name: SimpleName, val engine: Engine) {
   var chosenPolish: Option[PortPolish] = None
@@ -14,7 +14,7 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
   var chosenSupercharger: Option[Supercharger] = None
   var chosenNos: Option[Nitrous] = None
   var chosenNitrousSetting: Option[Int] = None
-  var withGoodOil: Boolean = false
+  var wearMultipliers: BigDecimal = BigDecimal(1)
 
   def buildStockEngine(): (SimpleName, SimpleEngine) = (name, engine.toSimpleEngine)
 
@@ -43,6 +43,6 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
       .orElse(Some(withSupercharger))
   } yield (
     name,
-    if (withGoodOil) withNOS.remapEngine(BigDecimal("1.05"), BigDecimal("1.05")) else withNOS,
+    withNOS.remapEngine(wearMultipliers, wearMultipliers),
   )).getOrElse(buildStockEngine())
 }

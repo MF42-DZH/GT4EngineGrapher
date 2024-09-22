@@ -1,4 +1,4 @@
-package gt4enginegrapher.schema
+package gtenginegrapher.schema
 
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
@@ -6,7 +6,7 @@ import slick.lifted.ProvenShape
 case class NATune(
   rowId: Int,
   label: String,
-  price: Int,
+  override val price: Int,
   override val highRPMTorqueModifier: Int,
   override val lowRPMTorqueModifier: Int,
   override val category: Int,
@@ -21,9 +21,9 @@ case class NATune(
   }) + getSuffix
 }
 
-trait NATunesProvider {
+trait GT4NATunesProvider {
   class NATuneT(tag: Tag)
-    extends UpgradeTableWithRevModifiers[NATune](
+    extends GT4UpgradeTableWithRevModifiers[NATune](
       tag            = tag,
       name           = "NATUNE",
       shiftLimitName = "shiftlimit",
@@ -32,6 +32,33 @@ trait NATunesProvider {
     override def * : ProvenShape[NATune] =
       (
         rowId,
+        label,
+        price,
+        highRPMTorqueModifier,
+        lowRPMTorqueModifier,
+        category,
+        shiftLimit,
+        revLimit,
+      ) <> ((NATune.apply _).tupled, NATune.unapply)
+  }
+
+  lazy val naTunes = TableQuery[NATuneT]
+}
+
+trait GT3NATunesProvider {
+  class NATuneT(tag: Tag)
+    extends GT3UpgradeTableWithRevModifiers[NATune](
+      tag            = tag,
+      name           = "NATUNE",
+      shiftLimitName = "rpmPointsModifier",
+      revLimitName   = "revlimitModifier",
+    ) {
+    override val highColumnName: String = "torqueModifier2"
+    override val lowColumnName: String = "torqueModifier"
+
+    override def * : ProvenShape[NATune] =
+      (
+        LiteralColumn(0),
         label,
         price,
         highRPMTorqueModifier,
