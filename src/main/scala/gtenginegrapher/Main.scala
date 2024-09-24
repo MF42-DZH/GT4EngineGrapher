@@ -64,11 +64,11 @@ object Main {
     val allNames = Await.result(db.run(names.result).map(_.map(_.toSimpleName)), Duration.Inf)
 
     UIManager.setLookAndFeel {
-      val os = System.getProperty("os.name")
+      val os = Option(System.getProperty("os.name"))
 
       os match {
-        case win if win.toLowerCase.contains("win") => UIManager.getSystemLookAndFeelClassName
-        case mac if mac.toLowerCase.contains("mac") => UIManager.getSystemLookAndFeelClassName
+        case Some(win) if win.toLowerCase.contains("win") => UIManager.getSystemLookAndFeelClassName
+        case Some(mac) if mac.toLowerCase.contains("mac") => UIManager.getSystemLookAndFeelClassName
         case _ => UIManager.getCrossPlatformLookAndFeelClassName
       }
     }
