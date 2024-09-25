@@ -69,7 +69,7 @@ case object GT4Wear extends WearUnaffectedByPrizeStatus {
   // 1000-12000 km: Wear period (±0% to -5%)
   override def engineMultiplier(kmTotalTravelled: Int): BigDecimal = kmTotalTravelled match {
     case n if n < 1000  => 1.bd
-    case n if n < 12000 => lerp(1.bd, BigDecimal("0.95"), (n - 1000).bd / 11000.bd)
+    case n if n < 11000 => lerp(1.bd, BigDecimal("0.95"), (n - 1000).bd / 10000.bd)
     case _              => BigDecimal("0.95")
   }
 }
