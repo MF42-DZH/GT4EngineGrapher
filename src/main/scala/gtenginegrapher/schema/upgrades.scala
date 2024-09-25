@@ -47,5 +47,8 @@ trait HasRevIncrease extends Upgrade {
   def revLimit: Int
 
   def remapRevs(se: SimpleEngine): SimpleEngine =
-    se.copy(torquePoints = se.torquePoints.map { case (t, r) => (t, r + shiftLimit * 100) })
+    se.copy(
+      torquePoints = se.torquePoints.map { case (t, r) => (t, r + shiftLimit * 100) },
+      revLimit     = se.revLimit + (revLimit * 100),
+    )
 }

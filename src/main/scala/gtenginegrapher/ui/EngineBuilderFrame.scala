@@ -497,13 +497,22 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
             )
           } match {
             case Failure(exc)   =>
+              val writer = new StringWriter();
+              exc.printStackTrace(new PrintWriter(writer))
+
+              if (verbose) {
+                println {
+                  s"[${condenseName(button.getClass.getName)}] Exception Caught: ${writer.toString}"
+                }
+              }
+
               JOptionPane.showMessageDialog(
                 ebf,
-                s"Could not form engine from available data, raw exception:\n\n${val writer = new StringWriter();
-                  exc.printStackTrace(new PrintWriter(writer)); writer.toString }",
+                s"Could not form engine from available data, raw exception:\n\n${writer.toString}",
                 "Invalid Engine",
                 JOptionPane.ERROR_MESSAGE,
               )
+
               return
             case Success(value) => value
           }

@@ -405,7 +405,9 @@ case class SimpleEngine(
       }
 
   def torqueAt(rpm: Int): Option[BigDecimal] = rawTorqueAt(rpm).map { torque =>
-    val where = unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2, rpm)
+    val where =
+      unlerpRPM(torquePoints.minBy(_._2)._2, torquePoints.maxBy(_._2)._2.min(revLimit), rpm)
+        .min(BigDecimal(1))
     val umod = lerp(lowRPMTorqueModifier, highRPMTorqueModifier, where)
     val total = torque * umod
     total

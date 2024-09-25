@@ -10,7 +10,7 @@ trait SlickEscapes {
   implicit def tableElementEscape[E, T <: Table[E]](what: T#TableElementType): E =
     what.asInstanceOf[E]
 
-  private def condenseName(str: String): String = str.split('.').toList match {
+  protected def condenseName(str: String): String = str.split('.').toList match {
     case name :: Nil => name
     case xs @ _ :: _ =>
       val (init, last) = (xs.init, xs.last)
