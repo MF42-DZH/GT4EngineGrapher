@@ -6,8 +6,12 @@ ThisBuild / scalaVersion := "2.13.14"
 lazy val sbtAssemblySettings = baseAssemblySettings ++ Seq(
   assembly / assemblyOutputPath    := baseDirectory.value / "GTEngineGrapher.jar",
   assembly / assemblyMergeStrategy := {
-    case PathList("META-INF", _*) => MergeStrategy.discard
-    case _                        => MergeStrategy.first
+    case PathList("META-INF", xs @ _*) =>
+      xs.map(_.toLowerCase) match {
+        case "services" :: _ => MergeStrategy.filterDistinctLines
+        case _               => MergeStrategy.discard
+      }
+    case _                             => MergeStrategy.first
   },
 )
 
