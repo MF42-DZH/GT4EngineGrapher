@@ -10,22 +10,24 @@ import scala.language.postfixOps
 
 import gtenginegrapher.schema._
 import gtenginegrapher.ui.EngineBuilderFrame
+import gtenginegrapher.utils.SlickEscapes
 import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, WearValues}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
 
-object Main {
+object Main extends SlickEscapes {
   private def printHelp(): Unit = println(
     """Gran Turismo Engine Grapher
       |
-      |Usage: java -jar GTEngineGrapher.jar [GT3 | REGION | HELP]
+      |Usage: java -jar GTEngineGrapher.jar [GT3 | REGION | HELP] [VERBOSE]
       |
-      |HELP       -h | --help
-      |REGION     NTSC-U | US | USA | America     (Gran Turismo 4 NTSC-U)
-      |           NTSC-K | KR | KOR | Korea       (Gran Turismo 4 NTSC-K)
-      |           NTSC-J | JP | JAP | Japan       (Gran Turismo 4 NTSC-J)
-      |           PAL    | EU | EUR | Europe      (Gran Turismo 4 PAL)
-      |GT3        gt3 | GT3                       (Gran Turismo 3 NTSC-U)
+      |HELP        -h | --help
+      |VERBOSE     -v | --verbose
+      |REGION      NTSC-U | US | USA | America     (Gran Turismo 4 NTSC-U)
+      |            NTSC-K | KR | KOR | Korea       (Gran Turismo 4 NTSC-K)
+      |            NTSC-J | JP | JAP | Japan       (Gran Turismo 4 NTSC-J)
+      |            PAL    | EU | EUR | Europe      (Gran Turismo 4 PAL)
+      |GT3         gt3 | GT3                       (Gran Turismo 3 NTSC-U)
       |
       |If REGION is not specified, GT4 NTSC-U is assumed.""".stripMargin,
   )
@@ -61,7 +63,17 @@ object Main {
 
     import schema._
 
-    val allNames = Await.result(db.run(names.result).map(_.map(_.toSimpleName)), Duration.Inf)
+    implicit val verbose: Boolean = args.map(_.toLowerCase).exists {
+      case "-v"        => true
+      case "--verbose" => true
+      case _           => false
+    }
+
+    val allNames = Await.result(
+      db.run(names.result.withStatements(Main.getClass).withCounting(Main.getClass))
+        .map(_.map(_.toSimpleName)),
+      Duration.Inf,
+    )
 
     UIManager.setLookAndFeel {
       val os = Option(System.getProperty("os.name"))

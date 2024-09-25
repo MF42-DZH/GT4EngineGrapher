@@ -23,6 +23,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   db: JdbcDatabaseDef,
   wear: WearValues,
   ec: ExecutionContext,
+  verbose: Boolean,
 ) extends JFrame
   with SlickEscapes { ebf =>
   import schema._
@@ -179,6 +180,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         table
           .filter(_.label.like(s"%${name.label}%"))
           .result
+          .withStatements(ebf.getClass)
+          .withCounting(ebf.getClass)
       }
 
     def allWithNames[U <: CanHaveCarName, T <: SpecTable[U]](
@@ -188,9 +191,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         names
           .join(table)
           .on { (carName, upgrade) =>
-            upgrade.label.like((carName.label.reverseString ++ "%").reverseString ++ "%")
+            upgrade.label.like(LiteralColumn("%") ++ (carName.label ++ "%"))
           }
           .result
+          .withStatements(ebf.getClass)
+          .withCounting(ebf.getClass)
       }
 
     def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Seq[U] =
@@ -483,6 +488,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
                   engines
                     .filter(_.label.like(s"%${name.label}%"))
                     .result
+                    .withStatements(ebf.getClass)
+                    .withCounting(ebf.getClass)
                     .map(_.head),
                 ),
                 Duration.Inf,
