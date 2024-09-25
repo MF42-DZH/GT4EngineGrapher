@@ -5,7 +5,7 @@ import java.awt.{BasicStroke, Color, Dimension, Font}
 import javax.swing.{JDialog, JFrame}
 
 import gtenginegrapher.schema.{SimpleEngine, SimpleName}
-import gtenginegrapher.wrappers.EngineGraph
+import gtenginegrapher.wrappers.{EngineBuilder, EngineGraph}
 import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
 import org.jfree.chart.entity.XYItemEntity
@@ -17,27 +17,49 @@ import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 case class EngineGraphPanel(
   owner: JFrame,
   private val name: SimpleName,
-  private val engine: SimpleEngine,
+  private val engineBuilder: EngineBuilder,
 ) extends JDialog(owner, s"Chart for ${name.name}")
   with ChartMouseListener {
+  private val engine: SimpleEngine = engineBuilder.buildEngine()._2
+  private val stockEngine: SimpleEngine = engineBuilder.buildStockEngine._2
+
   private val rawGraphData: EngineGraph = EngineGraph(engine)
+  private val rawStockGraphData: EngineGraph = EngineGraph(stockEngine)
+
   private val torqueC = new XYSeriesCollection
+  private val torqueSC = new XYSeriesCollection
   private val torque = new XYSeries("Torque (kgf.m)")
+  private val stockTorque = new XYSeries("Stock Torque (kgf.m)")
 
   private val powerC = new XYSeriesCollection
+  private val powerSC = new XYSeriesCollection
   private val power = new XYSeries("Power (PS)")
+  private val stockPower = new XYSeries("Stock Power (PS)")
 
   rawGraphData.points.foreach { case (rpm, (tor, pow)) =>
     torque.add(rpm, tor)
     power.add(rpm, pow)
   }
 
+  rawStockGraphData.points.foreach { case (rpm, (tor, pow)) =>
+    stockTorque.add(rpm, tor)
+    stockPower.add(rpm, pow)
+  }
+
   torqueC.addSeries(torque)
   powerC.addSeries(power)
+
+  torqueSC.addSeries(stockTorque)
+  powerSC.addSeries(stockPower)
 
   private val plot = new XYPlot()
   plot.setDataset(0, powerC)
   plot.setDataset(1, torqueC)
+
+  if (engine != stockEngine) {
+    plot.setDataset(2, powerSC)
+    plot.setDataset(3, torqueSC)
+  }
 
   {
     val rangeAxis = new NumberAxis("PS")
@@ -78,16 +100,41 @@ case class EngineGraphPanel(
   plot.mapDatasetToRangeAxis(0, 0)
   plot.mapDatasetToRangeAxis(1, 1)
 
+  if (engine != stockEngine) {
+    plot.mapDatasetToRangeAxis(2, 0)
+    plot.mapDatasetToRangeAxis(3, 1)
+  }
+
+  private val plainStroke = new BasicStroke(2.5f)
+
   private val rendererT = new XYLineAndShapeRenderer()
   private val rendererP = new XYLineAndShapeRenderer()
   rendererT.setSeriesPaint(0, new Color(134, 230, 0))
-  rendererT.setSeriesStroke(0, new BasicStroke(2.5f))
+  rendererT.setSeriesStroke(0, plainStroke)
   rendererT.setDefaultShapesVisible(false)
   rendererT.setDefaultEntityRadius(8)
+  rendererT.setDrawSeriesLineAsPath(true)
   rendererP.setSeriesPaint(0, new Color(230, 134, 0))
-  rendererP.setSeriesStroke(0, new BasicStroke(2.5f))
+  rendererP.setSeriesStroke(0, plainStroke)
   rendererP.setDefaultShapesVisible(false)
   rendererP.setDefaultEntityRadius(8)
+  rendererP.setDrawSeriesLineAsPath(true)
+
+  private val dashedStroke =
+    new BasicStroke(1.75f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, Array(8f), 0.0f)
+
+  private val rendererST = new XYLineAndShapeRenderer()
+  private val rendererSP = new XYLineAndShapeRenderer()
+  rendererST.setSeriesPaint(0, new Color(134 / 2, 230 / 2, 0))
+  rendererST.setSeriesStroke(0, dashedStroke)
+  rendererST.setDefaultShapesVisible(false)
+  rendererST.setDefaultEntityRadius(0)
+  rendererST.setDrawSeriesLineAsPath(true)
+  rendererSP.setSeriesPaint(0, new Color(230 / 2, 134 / 2, 0))
+  rendererSP.setSeriesStroke(0, dashedStroke)
+  rendererSP.setDefaultShapesVisible(false)
+  rendererSP.setDefaultEntityRadius(0)
+  rendererSP.setDrawSeriesLineAsPath(true)
 
   // Crosshairs maybe better?
   val crosshairStroke = new BasicStroke(
@@ -178,6 +225,12 @@ case class EngineGraphPanel(
 
   plot.setRenderer(0, rendererP)
   plot.setRenderer(1, rendererT)
+
+  if (engine != stockEngine) {
+    plot.setRenderer(2, rendererSP)
+    plot.setRenderer(3, rendererST)
+  }
+
   plot.setBackgroundPaint(Color.BLACK)
 
   private val chart = new JFreeChart(name.name, getFont, plot, true)
@@ -192,7 +245,6 @@ case class EngineGraphPanel(
 
   this.setContentPane(chartPanel)
 
-  // Don't need this.
   override def chartMouseClicked(event: ChartMouseEvent): Unit =
     rpmCrosshair.setVisible(!rpmCrosshair.isVisible)
 
@@ -200,9 +252,11 @@ case class EngineGraphPanel(
     val entity = event.getEntity
     entity match {
       case xy: XYItemEntity =>
-        val ix = xy.getItem
-        val xR = torque.getX(ix).intValue()
-        rpmCrosshair.setValue(xR)
+        if (Seq(torqueC, powerC).contains(xy.getDataset)) {
+          val ix = xy.getItem
+          val xR = torque.getX(ix).intValue()
+          rpmCrosshair.setValue(xR)
+        }
       case _                => ()
     }
   }

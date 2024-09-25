@@ -28,7 +28,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   import schema._
   private val worker: ExecutorService = Executors.newSingleThreadExecutor()
 
-  setTitle("Gran Turismo Engine Charter")
+  setTitle("Gran Turismo Engine Charter - " + (schema match {
+    case _: GT3AllSchema => "Gran Turismo 3"
+    case _: GT4AllSchema => "Gran Turismo 4"
+  }))
+
   setLayout(new BoxLayout(getContentPane, BoxLayout.PAGE_AXIS))
   setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 
@@ -160,6 +164,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
   // Car customizer
   private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() { inner =>
+    hybridTick.setEnabled(false)
+
     private def name = carSelector.getSelectedItem.asInstanceOf[SimpleName]
 
     val customizerLayout = new FlowLayout()
@@ -508,8 +514,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           builder.chosenNitrousSetting = nosStrength
           builder.wearMultipliers = wearSaveData.map { case (m, _) => m }.getOrElse(BigDecimal(1))
 
-          val (_, engine) = builder.buildEngine()
-          val chart = EngineGraphPanel(ebf, name, engine)
+          val chart = EngineGraphPanel(ebf, name, builder)
           chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
 
           chart.pack()
@@ -607,5 +612,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       })
     })
     bar.setValue(12)
+
+    hybridTick.setEnabled(true)
   }
 }

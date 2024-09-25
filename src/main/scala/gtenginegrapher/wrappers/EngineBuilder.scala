@@ -16,10 +16,10 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
   var chosenNitrousSetting: Option[Int] = None
   var wearMultipliers: BigDecimal = BigDecimal(1)
 
-  def buildStockEngine(): (SimpleName, SimpleEngine) = (name, engine.toSimpleEngine)
+  lazy val buildStockEngine: (SimpleName, SimpleEngine) = (name, engine.toSimpleEngine)
 
   def buildEngine(): (SimpleName, SimpleEngine) = (for {
-    chosenEngine     <- Some(engine.toSimpleEngine)
+    chosenEngine     <- Some(buildStockEngine._2)
     withPP           <- chosenPolish.map(_.remapEngine(chosenEngine)).orElse(Some(chosenEngine))
     withBal          <- chosenBalance
       .map(eb => ((eb.remapRevs _) compose (eb.remapEngine _))(withPP))
@@ -44,5 +44,5 @@ class EngineBuilder(val name: SimpleName, val engine: Engine) {
   } yield (
     name,
     withNOS.remapEngine(wearMultipliers, wearMultipliers),
-  )).getOrElse(buildStockEngine())
+  )).getOrElse(buildStockEngine)
 }
