@@ -54,6 +54,7 @@ case object GT4Wear extends WearUnaffectedByPrizeStatus {
   //    0-200 km: Clean Oil (+5%)
   //  200-300 km: Clean->Normal (+5% to ±0%)
   // 300-5300 km: Normal->Dirty (±0% to -5%)
+  //    5301+ km: Dirty (-5%)
   override def oilMultiplier(kmSinceOilChange: Int, hasBeenChanged: Boolean): BigDecimal = {
     val usedKmDistance = if (hasBeenChanged) kmSinceOilChange else kmSinceOilChange + 300
 
@@ -66,7 +67,7 @@ case object GT4Wear extends WearUnaffectedByPrizeStatus {
   }
 
   //     0-1000 km: Full performance (±0%)
-  // 1000-12000 km: Wear period (±0% to -5%)
+  // 1000-11000 km: Wear period (±0% to -5%)
   override def engineMultiplier(kmTotalTravelled: Int): BigDecimal = kmTotalTravelled match {
     case n if n < 1000  => 1.bd
     case n if n < 11000 => lerp(1.bd, BigDecimal("0.95"), (n - 1000).bd / 10000.bd)

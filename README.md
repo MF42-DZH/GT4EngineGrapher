@@ -2,15 +2,15 @@
 
 [![Master Build](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
 
-This is a program trying to replicate the power/torque graphs you see in GT4 in the tuning menu.
+This is a program trying to replicate the power/torque graphs you see in GT4's tuning menu.
 
-All data is sourced from the SpecDB databases of the game (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)).
+All data is sourced from the SpecDB databases of GT4 (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)), or extracted from GT3 using [pez2k/GT3VOLExtractor](https://github.com/pez2k/gt2tools/tree/master/GT3VOLExtractor) and [Nenkai/GTDataSQLiteConverter](https://github.com/Nenkai/GTDataSQLiteConverter) by ddm and Nenkai.
 
 Currently, torque and power units are fixed to `kgf.m` and `PS` respectively.
 
 ### High Priority Issues
 
-- https://github.com/MF42-DZH/GT4EngineGrapher/issues/8
+- https://github.com/MF42-DZH/GT4EngineGrapher/issues/8 - Power inaccuracies when upgrades get involved.
 
 ### Usage
 
@@ -49,5 +49,6 @@ Shift-click on `Map Engine` to obtain a rudimentary shopping list for the requir
 
 ## Special Thanks
 
+- **Nenkai**, **pez2k**, **ddm**: Data extractor tools for GT3 and GT4.
 - **TeaKanji**: For inspiring me to go down this rabbit-hole.
 - **Ablationer**: From the GT Modding Discord, for helping me with torque modifiers for upgrades (and inadvertently helping me rubber-duck debug this program).
