@@ -151,7 +151,7 @@ case class EngineGraphPanel(
   val rlCrosshair = new Crosshair(Double.NaN, Color.RED, crosshairStroke)
   val limitCrosshair = new Crosshair(Double.NaN, Color.RED, new BasicStroke(2.5f))
 
-  if (engine.revLimit <= engine.torquePoints.map(_._2).max) {
+  if (engine.revLimit < engine.torquePoints.map(_._2).max) {
     limitCrosshair.setLabelBackgroundPaint(new Color(255, 143, 143))
     limitCrosshair.setLabelFont(limitCrosshair.getLabelFont.deriveFont(16f).deriveFont(Font.BOLD))
     limitCrosshair.setLabelPaint(Color.BLACK)
@@ -172,7 +172,7 @@ case class EngineGraphPanel(
   }
   rlCrosshair.setLabelBackgroundPaint(new Color(255, 175, 175))
 
-  if (engine.revLimit <= engine.torquePoints.map(_._2).max) {
+  if (engine.revLimit < engine.torquePoints.map(_._2).max) {
     rlCrosshair.setLabelYOffset(25.5)
     peakPCrosshair.setLabelYOffset(48)
     peakTCrosshair.setLabelYOffset(70.5)
