@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 import gtenginegrapher.schema._
-import gtenginegrapher.utils.SlickEscapes
+import gtenginegrapher.utils._
 import gtenginegrapher.wrappers._
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
@@ -21,6 +21,7 @@ import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
 class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   schema: AllSchema,
   db: JdbcDatabaseDef,
+  region: Region,
   wear: WearValues,
   ec: ExecutionContext,
   verbose: Boolean,
@@ -29,10 +30,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   import schema._
   private val worker: ExecutorService = Executors.newSingleThreadExecutor()
 
-  setTitle("Gran Turismo Engine Charter - " + (schema match {
-    case _: GT3AllSchema => "Gran Turismo 3"
-    case _: GT4AllSchema => "Gran Turismo 4"
-  }))
+  setTitle {
+    "Gran Turismo Engine Charter - " +
+      (schema match {
+        case _: GT3AllSchema => "Gran Turismo 3"
+        case _: GT4AllSchema => "Gran Turismo 4"
+      }) +
+      s" - ${region.toString}"
+  }
 
   setLayout(new BoxLayout(getContentPane, BoxLayout.PAGE_AXIS))
   setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
@@ -497,7 +502,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
             )
           } match {
             case Failure(exc)   =>
-              val writer = new StringWriter();
+              val writer = new StringWriter()
               exc.printStackTrace(new PrintWriter(writer))
 
               if (verbose) {
@@ -566,7 +571,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
               "Primary Power Part"  -> primaryPowerUpgrade,
               "Supplementary Parts" -> supplementaryParts,
               "Oil Change"          -> Option
-                .when(wearSaveData.exists { case (_, ((otk, _), (_, _))) => otk })(
+                .when(wearSaveData.exists { case (_, ((otk, otd), (_, _))) => otk && (otd < 300) })(
                   (
                     "New Oil",
                     new HasTorqueRemapping {

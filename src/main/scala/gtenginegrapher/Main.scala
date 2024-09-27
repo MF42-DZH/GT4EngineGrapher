@@ -10,7 +10,7 @@ import scala.language.postfixOps
 
 import gtenginegrapher.schema._
 import gtenginegrapher.ui.EngineBuilderFrame
-import gtenginegrapher.utils.SlickEscapes
+import gtenginegrapher.utils._
 import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, WearValues}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
@@ -40,25 +40,25 @@ object Main extends SlickEscapes {
       case _                                                   => ()
     }
 
-    implicit val (schema: AllSchema, db: JdbcDatabaseDef, wear: WearValues) =
+    implicit val (schema: AllSchema, db: JdbcDatabaseDef, wear: WearValues, region: Region) =
       if (!args.exists(_.toLowerCase == "gt3")) {
         val gt4Schema: GT4AllSchema = new GT4AllSchema
-        val udb: JdbcDatabaseDef =
+        val (udb, reg): (JdbcDatabaseDef, Region) =
           args
             .collectFirst {
-              case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb
-              case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb
-              case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb
-              case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb
+              case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb  -> NtscU
+              case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb -> NtscK
+              case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb  -> NtscJ
+              case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb  -> Pal
             }
-            .getOrElse(gt4Schema.usDb)
+            .getOrElse(gt4Schema.usDb -> NtscU)
 
-        (gt4Schema.asBase, udb, GT4Wear.asBase)
+        (gt4Schema.asBase, udb, GT4Wear.asBase, reg)
       } else {
         val gt3Schema: GT3AllSchema = new GT3AllSchema
         val udb = gt3Schema.usDb
 
-        (gt3Schema.asBase, udb, GT3Wear.asBase)
+        (gt3Schema.asBase, udb, GT3Wear.asBase, NtscU)
       }
 
     import schema._
