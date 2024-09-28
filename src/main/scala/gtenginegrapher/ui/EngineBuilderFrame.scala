@@ -183,7 +183,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Future[Seq[U]] =
       db.run {
         table
-          .filter(_.label.like(s"%${name.label}%"))
+          .filter(_.label.like(s"%\\_${name.label}\\__", esc = '\\'))
           .result
           .withStatements(ebf.getClass)
           .withCounting(ebf.getClass)
@@ -196,7 +196,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         names
           .join(table)
           .on { (carName, upgrade) =>
-            upgrade.label.like(LiteralColumn("%") ++ (carName.label ++ "%"))
+            upgrade.label.like(LiteralColumn("%\\_") ++ (carName.label ++ "\\__"), esc = '\\')
           }
           .result
           .withStatements(ebf.getClass)
@@ -491,7 +491,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
               Await.result(
                 db.run(
                   engines
-                    .filter(_.label.like(s"%${name.label}%"))
+                    .filter(_.label.like(s"en\\_%${name.label}\\_%", esc = '\\'))
                     .result
                     .withStatements(ebf.getClass)
                     .withCounting(ebf.getClass)

@@ -48,12 +48,18 @@ trait GT3NameProvider {
         column[String]("NameFirstPartUS") ++
         " " ++
         column[String]("NameSecondPartUS")
+    def year = column[Int]("Year")
 
     override def * : ProvenShape[Name] =
       (
         label,
         name,
-      ) <> ((Name(0, _, _)).tupled, (name: Name) => Some((name.label, name.name)))
+        year,
+      ) <> ({ case (l, n, y) =>
+        Name(0, l, n.replaceAll(" {2}", " ").trim + (if (y == 0) "" else s" $y"))
+      },
+      (name: Name) =>
+        Some((name.label, name.name, name.name.split(" ").last.toIntOption.getOrElse(0))))
   }
 
   lazy val names = TableQuery[NameT]
