@@ -370,39 +370,41 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
     bar.setValue(10)
 
-    // Only allow one aspiration to be active:
-    nas.addItemListener((e: ItemEvent) => {
-      if (
-        e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
-          .asInstanceOf[NATune]
-          .category > 0
-      ) {
-        tks.setSelectedIndex(0)
-        scs.setSelectedIndex(0)
-      }
-    })
+    // Only allow one aspiration to be active, if hybriding is disabled:
+    if (!hybridTick.isSelected) {
+      nas.addItemListener((e: ItemEvent) => {
+        if (
+          e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
+            .asInstanceOf[NATune]
+            .category > 0
+        ) {
+          tks.setSelectedIndex(0)
+          scs.setSelectedIndex(0)
+        }
+      })
 
-    tks.addItemListener((e: ItemEvent) => {
-      if (
-        e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
-          .asInstanceOf[TurbineKit]
-          .category > 0
-      ) {
-        nas.setSelectedIndex(0)
-        scs.setSelectedIndex(0)
-      }
-    })
+      tks.addItemListener((e: ItemEvent) => {
+        if (
+          e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
+            .asInstanceOf[TurbineKit]
+            .category > 0
+        ) {
+          nas.setSelectedIndex(0)
+          scs.setSelectedIndex(0)
+        }
+      })
 
-    scs.addItemListener((e: ItemEvent) => {
-      if (
-        e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
-          .asInstanceOf[Supercharger]
-          .category > 0
-      ) {
-        nas.setSelectedIndex(0)
-        tks.setSelectedIndex(0)
-      }
-    })
+      scs.addItemListener((e: ItemEvent) => {
+        if (
+          e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
+            .asInstanceOf[Supercharger]
+            .category > 0
+        ) {
+          nas.setSelectedIndex(0)
+          tks.setSelectedIndex(0)
+        }
+      })
+    }
 
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
