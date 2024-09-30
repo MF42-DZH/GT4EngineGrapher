@@ -180,10 +180,21 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     setLayout(customizerLayout)
 
-    def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Future[Seq[U]] =
+    def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](
+      table: TableQuery[T],
+      labelOverride: Option[Rep[String] => Rep[String]],
+    ): Future[Seq[U]] =
       db.run {
         table
-          .filter(_.label.like(s"%\\_${name.label}\\__", esc = '\\'))
+          .filter(
+            _.label.like(
+              labelOverride match {
+                case Some(f) => f(name.label)
+                case None    => s"%\\_${name.label}\\__"
+              },
+              esc = '\\',
+            ),
+          )
           .result
           .withStatements(ebf.getClass)
           .withCounting(ebf.getClass)
@@ -191,22 +202,32 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     def allWithNames[U <: CanHaveCarName, T <: SpecTable[U]](
       table: TableQuery[T],
+      labelOverride: Option[Rep[String] => Rep[String]],
     ): Future[Seq[(Name, U)]] =
       db.run {
         names
           .join(table)
           .on { (carName, upgrade) =>
-            upgrade.label.like(LiteralColumn("%\\_") ++ (carName.label ++ "\\__"), esc = '\\')
+            upgrade.label.like(
+              labelOverride match {
+                case Some(f) => f(carName.label)
+                case None    => LiteralColumn("%\\_") ++ (carName.label ++ "\\__")
+              },
+              esc = '\\',
+            )
           }
           .result
           .withStatements(ebf.getClass)
           .withCounting(ebf.getClass)
       }
 
-    def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](table: TableQuery[T]): Seq[U] =
+    def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](
+      table: TableQuery[T],
+      labelOverride: Option[Rep[String] => Rep[String]] = None,
+    ): Seq[U] =
       if (hybridTick.isSelected) {
         Await.result(
-          allWithNames[U, T](table).map(
+          allWithNames[U, T](table, labelOverride).map(
             _.map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
               .sortBy((up: U) => (up.carName, up.category)),
           ),
@@ -214,7 +235,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         )
       } else {
         Await.result(
-          byLabel[U, T](table).map(_.sortBy(_.category)),
+          byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)),
           Duration.Inf,
         )
       }
@@ -352,7 +373,11 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           lowRPMTorqueModifier  = 100,
           price                 = 0,
           category              = 0,
-        ) +: getUpgrades[Supercharger, SuperchargerTable](superchargers)
+        ) +: getUpgrades[Supercharger, SuperchargerTable](
+          superchargers,
+          // XXX: For some reason, GT4's 350z Special Edition has a supercharger with a malformed Label.
+          labelOverride = Some { (label: Rep[String]) => LiteralColumn("%") ++ (label ++ "\\__") },
+        )
       }
     bar.setValue(9)
     val (noss, nosp) = generateCustomizer[Nitrous]("Nitrous") {
