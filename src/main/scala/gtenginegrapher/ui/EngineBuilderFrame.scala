@@ -60,7 +60,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     (SimpleName(
       label = "___not_a_car",
       name  = "[Select a Car]",
-    ) +: allNames.sortBy(_.name)).toArray,
+    ) +: allNames.sortBy(_.name.toLowerCase)).toArray,
   )
   private val wearButton = new JButton("Wear Settings") {
     addMouseListener(new MouseListener {
