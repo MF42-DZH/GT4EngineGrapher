@@ -23,11 +23,12 @@ object Main extends SlickEscapes {
       |
       |HELP        -h | --help
       |VERBOSE     -v | --verbose
-      |REGION      NTSC-U | US | USA | America     (Gran Turismo 4 NTSC-U)
-      |            NTSC-K | KR | KOR | Korea       (Gran Turismo 4 NTSC-K)
-      |            NTSC-J | JP | JAP | Japan       (Gran Turismo 4 NTSC-J)
-      |            PAL    | EU | EUR | Europe      (Gran Turismo 4 PAL)
-      |GT3         gt3 | GT3                       (Gran Turismo 3 NTSC-U)
+      |REGION      NTSC-U | US    | USA | America     (Gran Turismo 4 NTSC-U)
+      |            NTSC-K | KR    | KOR | Korea       (Gran Turismo 4 NTSC-K)
+      |            NTSC-J | JP    | JAP | Japan       (Gran Turismo 4 NTSC-J)
+      |            PAL    | EU    | EUR | Europe      (Gran Turismo 4 PAL)
+      |            SPECII | SPEC2                     (Gran Turismo 4 Spec II v1.05; based on NTSC-U)
+      |GT3         gt3 | GT3                          (Gran Turismo 3 NTSC-U)
       |
       |If REGION is not specified, GT4 NTSC-U is assumed.""".stripMargin,
   )
@@ -50,6 +51,7 @@ object Main extends SlickEscapes {
               case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb -> NtscK
               case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb  -> NtscJ
               case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb  -> Pal
+              case "specii" | "spec2"                  => gt4Schema.s2Db  -> Spec2
             }
             .getOrElse(gt4Schema.usDb -> NtscU)
 
