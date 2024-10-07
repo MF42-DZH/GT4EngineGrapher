@@ -19,7 +19,7 @@ object Main extends SlickEscapes {
   private def printHelp(): Unit = println(
     """Gran Turismo Engine Grapher
       |
-      |Usage: java -jar GTEngineGrapher.jar [GT3 | REGION | HELP] [VERBOSE]
+      |Usage: java -jar GTEngineGrapher.jar [GT3 | REGION | HELP] [VERSION] [VERBOSE]
       |
       |HELP        -h | --help
       |VERBOSE     -v | --verbose
@@ -27,7 +27,8 @@ object Main extends SlickEscapes {
       |            NTSC-K | KR    | KOR | Korea       (Gran Turismo 4 NTSC-K)
       |            NTSC-J | JP    | JAP | Japan       (Gran Turismo 4 NTSC-J)
       |            PAL    | EU    | EUR | Europe      (Gran Turismo 4 PAL)
-      |            SPECII | SPEC2                     (Gran Turismo 4 Spec II v1.05; based on NTSC-U)
+      |            SPECII | SPEC2                     (Gran Turismo 4 Spec II; based on NTSC-U)
+      |VERSION     1.05 | 1.06                        (Spec II version; ignored if REGION is not Spec II; default: 1.06)
       |GT3         gt3 | GT3                          (Gran Turismo 3 NTSC-U)
       |
       |If REGION is not specified, GT4 NTSC-U is assumed.""".stripMargin,
@@ -41,6 +42,7 @@ object Main extends SlickEscapes {
       case _                                                   => ()
     }
 
+    // TODO: Get a proper argument parser. This is getting out of hand.
     implicit val (schema: AllSchema, db: JdbcDatabaseDef, wear: WearValues, region: Region) =
       if (!args.exists(_.toLowerCase == "gt3")) {
         val gt4Schema: GT4AllSchema = new GT4AllSchema
@@ -51,7 +53,13 @@ object Main extends SlickEscapes {
               case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb -> NtscK
               case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb  -> NtscJ
               case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb  -> Pal
-              case "specii" | "spec2"                  => gt4Schema.s2Db  -> Spec2
+              case "specii" | "spec2"                  =>
+                args
+                  .collectFirst {
+                    case "1.05" => gt4Schema.s2Db_1_05 -> Spec2("v1.05")
+                    case "1.06" => gt4Schema.s2Db_1_06 -> Spec2("v1.06")
+                  }
+                  .getOrElse(gt4Schema.s2Db_1_06 -> Spec2("v1.06"))
             }
             .getOrElse(gt4Schema.usDb -> NtscU)
 
