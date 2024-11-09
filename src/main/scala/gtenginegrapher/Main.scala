@@ -58,7 +58,7 @@ object Main extends SlickEscapes {
                   .collectFirst {
                     case "1.05" => gt4Schema.s2Db_1_05 -> Spec2("v1.05")
                     case "1.06" => gt4Schema.s2Db_1_06 -> Spec2("v1.06")
-                    case "1.06" => gt4Schema.s2Db_1_06 -> Spec2("v1.07")
+                    case "1.07" => gt4Schema.s2Db_1_07 -> Spec2("v1.07")
                   }
                   .getOrElse(gt4Schema.s2Db_1_06 -> Spec2("v1.07"))
             }
