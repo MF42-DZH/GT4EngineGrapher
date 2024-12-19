@@ -7,6 +7,7 @@ on:
 env:
   pkg-assembly: 'GTEngineGrapher.jar'
   pkg-name: 'gtenginegrapher'
+  pkg-image: 'GTEngineGrapher'
   pkg-version: '1.2.1'
 
 jobs:
@@ -53,7 +54,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: appimage-osx
-        path: "./AppImage/GTEngineGrapher"
+        path: "./AppImage/${{ env.pkg-image }}.app"
   windows:
     needs: fat
     runs-on: [windows-latest]
@@ -78,7 +79,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: appimage-windows
-        path: ".\\AppImage\\GTEngineGrapher"
+        path: ".\\AppImage\\${{ env.pkg-image }}"
   linux:
     needs: fat
     runs-on: [ubuntu-latest]
@@ -103,4 +104,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: appimage-linux
-        path: "./AppImage/GTEngineGrapher"
+        path: "./AppImage/${{ env.pkg-image }}"
