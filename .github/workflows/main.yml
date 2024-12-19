@@ -7,7 +7,7 @@ on:
 env:
   pkg-assembly: 'GTEngineGrapher.jar'
   pkg-name: 'gtenginegrapher'
-  pkg-version: '1.2.0'
+  pkg-version: '1.2.1'
 
 jobs:
   fat:
