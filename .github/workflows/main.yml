@@ -44,8 +44,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: jars
+        path: artifacts
     - name: Package jar as dmg installer
-      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gtenginegrapher.Main$ --main-jar GT4EngineGrapher/${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} -i jars --main-class gtenginegrapher.Main$ --main-jar artifacts/${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: ls
     - name: Upload dmg
@@ -68,8 +69,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: jars
+        path: artifacts
     - name: Package jar as msi
-      run: "jpackage --name ${{ env.pkg-name }} --type msi -i jars --main-class gtenginegrapher.Main$ --main-jar GT4EngineGrapher\\${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} --type msi -i jars --main-class gtenginegrapher.Main$ --main-jar artifacts\\${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: dir
     - name: Upload installer
@@ -92,8 +94,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: jars
+        path: artifacts
     - name: Package jar as debian package
-      run: "jpackage --name ${{ env.pkg-name }} --type deb -i jars --main-class gtenginegrapher.Main$ --main-jar GT4EngineGrapher/${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: "jpackage --name ${{ env.pkg-name }} --type deb -i jars --main-class gtenginegrapher.Main$ --main-jar artifacts/${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
       run: ls
     - name: Upload deb
