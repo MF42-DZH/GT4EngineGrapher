@@ -80,7 +80,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
       with:
-        java-version: '14.0.0'
+        java-version: '21.0.2'
         java-package: jdk
         architecture: x64
     - name: Download fat jar
