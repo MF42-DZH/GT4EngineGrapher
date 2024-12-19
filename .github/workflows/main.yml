@@ -46,14 +46,14 @@ jobs:
         name: jars
         path: artifacts
     - name: Package jar as dmg installer
-      run: "jpackage --name ${{ env.pkg-name }} -i ./artifacts --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: 'jpackage --name ${{ env.pkg-name }} --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
       run: ls
-    - name: Upload dmg
+    - name: Upload OSX App Image
       uses: actions/upload-artifact@v4
       with:
-        name: dmgs
-        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.dmg"
+        name: appimage-osx
+        path: "./AppImage/GTEngineGrapher"
   windows:
     needs: fat
     runs-on: [windows-latest]
@@ -71,14 +71,14 @@ jobs:
         name: jars
         path: artifacts
     - name: Package jar as msi
-      run: "jpackage --name ${{ env.pkg-name }} --type msi -i .\\artifacts --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}"
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input .\\artifacts --dest .\\AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --win-dir-chooser --app-version ${{ env.pkg-version }}'
     - name: View artifacts
       run: dir
-    - name: Upload installer
+    - name: Upload Windows App Image
       uses: actions/upload-artifact@v4
       with:
-        name: msis
-        path: "${{ env.pkg-name }}-${{ env.pkg-version }}.msi"
+        name: appimage-windows
+        path: ".\\AppImage\\GTEngineGrapher"
   linux:
     needs: fat
     runs-on: [ubuntu-latest]
@@ -96,11 +96,11 @@ jobs:
         name: jars
         path: artifacts
     - name: Package jar as debian package
-      run: "jpackage --name ${{ env.pkg-name }} --type deb -i ./artifacts --main-class gtenginegrapher.Main$ --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
       run: ls
-    - name: Upload deb
+    - name: Upload Linux App Image
       uses: actions/upload-artifact@v4
       with:
-        name: debs
-        path: "${{ env.pkg-name }}_${{ env.pkg-version }}_amd64.deb"
+        name: appimage-linux
+        path: "./AppImage/GTEngineGrapher"
