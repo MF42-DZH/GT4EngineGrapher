@@ -8,7 +8,7 @@ env:
   pkg-assembly: 'GTEngineGrapher.jar'
   pkg-name: 'gtenginegrapher'
   pkg-image: 'GTEngineGrapher'
-  pkg-version: '1.2.1'
+  pkg-version: '1.2.2'
 
 jobs:
   fat:
@@ -47,14 +47,14 @@ jobs:
         name: jars
         path: artifacts
     - name: Package JAR as App Image
-      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage/${{ env.pkg-image }} --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
       run: ls AppImage
     - name: Upload OSX App Image
       uses: actions/upload-artifact@v4
       with:
         name: appimage-osx
-        path: "./AppImage/${{ env.pkg-image }}.app"
+        path: "./AppImage/${{ env.pkg-image }}"
   windows:
     needs: fat
     runs-on: [windows-latest]
