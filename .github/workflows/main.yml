@@ -13,17 +13,18 @@ jobs:
   fat:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up JDK 21
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
+        distribution: 'temurin'
         java-version: '21.0.2'
         java-package: jdk
         architecture: x64
     - name: Assemble Uberjar
       run: sbt assembly
     - name: Upload Uberjar
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: jars
         path: "${{ env.pkg-assembly }}"
@@ -31,14 +32,15 @@ jobs:
     needs: fat
     runs-on: [macos-latest]
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v1
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v2
       with:
+        distribution: 'temurin'
         java-version: '21.0.2'
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: jars
     - name: Package jar as dmg installer
@@ -46,7 +48,7 @@ jobs:
     - name: View artifacts
       run: ls
     - name: Upload dmg
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: dmgs
         path: "${{ env.pkg-name }}-${{ env.pkg-version }}.dmg"
@@ -54,14 +56,15 @@ jobs:
     needs: fat
     runs-on: [windows-latest]
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v1
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v2
       with:
+        distribution: 'temurin'
         java-version: '21.0.2'
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: jars
     - name: Package jar as msi
@@ -69,7 +72,7 @@ jobs:
     - name: View artifacts
       run: dir
     - name: Upload installer
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: msis
         path: "${{ env.pkg-name }}-${{ env.pkg-version }}.msi"
@@ -77,14 +80,15 @@ jobs:
     needs: fat
     runs-on: [ubuntu-latest]
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-java@v1
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v2
       with:
+        distribution: 'temurin'
         java-version: '21.0.2'
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: jars
     - name: Package jar as debian package
@@ -92,7 +96,7 @@ jobs:
     - name: View artifacts
       run: ls
     - name: Upload deb
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: debs
         path: "${{ env.pkg-name }}_${{ env.pkg-version }}-1_amd64.deb"
