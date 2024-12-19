@@ -48,7 +48,7 @@ jobs:
     - name: Package JAR as App Image
       run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
-      run: ls
+      run: ls AppImage
     - name: Upload OSX App Image
       uses: actions/upload-artifact@v4
       with:
@@ -73,7 +73,7 @@ jobs:
     - name: Package JAR as App Image
       run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input .\\artifacts --dest .\\AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --win-console --app-version ${{ env.pkg-version }}'
     - name: View artifacts
-      run: dir
+      run: dir AppImage
     - name: Upload Windows App Image
       uses: actions/upload-artifact@v4
       with:
@@ -98,7 +98,7 @@ jobs:
     - name: Package JAR as App Image
       run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
-      run: ls
+      run: ls AppImage
     - name: Upload Linux App Image
       uses: actions/upload-artifact@v4
       with:
