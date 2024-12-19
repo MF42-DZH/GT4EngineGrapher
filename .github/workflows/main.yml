@@ -15,7 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-scala@v14
-      with: openjdk@21.0.2
+      with:
+        java-version: openjdk@21.0.2
     - name: Assemble Uberjar
       run: sbt assembly
     - name: Upload Uberjar
