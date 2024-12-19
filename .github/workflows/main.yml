@@ -95,6 +95,8 @@ jobs:
       with:
         name: jars
         path: artifacts
+    - name: Display structure of downloaded files
+      run: ls -R .
     - name: Package jar as debian package
       run: "jpackage --name ${{ env.pkg-name }} --type deb -i jars --main-class gtenginegrapher.Main$ --main-jar GT4EngineGrapher/GT4EngineGrapher/artifacts/${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}"
     - name: View artifacts
