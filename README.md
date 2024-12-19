@@ -4,7 +4,7 @@
 
 This is a program trying to replicate the power/torque graphs you see in GT4's tuning menu.
 
-All data is sourced from the SpecDB databases of GT4 (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)), or extracted from GT3 using [pez2k/GT3VOLExtractor](https://github.com/pez2k/gt2tools/tree/master/GT3VOLExtractor) and [Nenkai/GTDataSQLiteConverter](https://github.com/Nenkai/GTDataSQLiteConverter) by ddm and Nenkai.
+All data is sourced from the SpecDB databases of GT4 (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)), or extracted from GT4 Spec II using [Razer2015/GT4FS](https://github.com/Razer2015/GT4FS), or extracted from GT3 using [pez2k/GT3VOLExtractor](https://github.com/pez2k/gt2tools/tree/master/GT3VOLExtractor) and [Nenkai/GTDataSQLiteConverter](https://github.com/Nenkai/GTDataSQLiteConverter) by ddm and Nenkai.
 
 Currently, torque and power units are fixed to `kgf.m` and `PS` respectively.
 
