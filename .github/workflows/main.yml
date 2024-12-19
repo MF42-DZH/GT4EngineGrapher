@@ -14,9 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: olafurpg/setup-scala@v14
-      with:
-        java-version: openjdk@21.0.2
+    - uses: sbt/setup-sbt@v1
     - name: Assemble Uberjar
       run: sbt assembly
     - name: Upload Uberjar
