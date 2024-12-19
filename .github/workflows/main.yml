@@ -46,7 +46,7 @@ jobs:
         name: jars
         path: artifacts
     - name: Package JAR as App Image
-      run: 'jpackage --name ${{ env.pkg-name }} --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }}'
     - name: View artifacts
       run: ls
     - name: Upload OSX App Image
