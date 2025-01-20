@@ -45,7 +45,7 @@ This UI style will be system-dependent. Windows and Mac OS uses Java's system-co
 
 ![Wear Editor for Oil and Engine Wear](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/WearEditor.png)
 
-### Graph
+### Shopping List
 
 Shift-click on `Map Engine` to obtain a rudimentary shopping list for the required upgrades and maintenance.
 
