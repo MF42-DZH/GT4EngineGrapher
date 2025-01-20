@@ -61,6 +61,7 @@ case class EngineGraphPanel(
   private val plot = new XYPlot()
   plot.setDataset(0, torqueC)
   plot.setDataset(1, powerC)
+  plot.setRangeGridlinesVisible(false)
 
   if (engine != stockEngine) {
     plot.setDataset(2, torqueSC)
