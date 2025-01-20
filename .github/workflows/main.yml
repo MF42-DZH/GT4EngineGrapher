@@ -9,7 +9,7 @@ env:
   pkg-name: 'gtenginegrapher'
   pkg-image: 'GTEngineGrapher'
   pkg-version: '1.3.0'
-  pkg-icon: 'GTEG.png'
+  pkg-icon: 'GTEG'
 
 jobs:
   fat:
@@ -48,7 +48,7 @@ jobs:
         name: jars
         path: artifacts
     - name: Package JAR as App Image
-      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage/${{ env.pkg-image }} --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}'
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage/${{ env.pkg-image }} --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}.icns'
     - name: View artifacts
       run: ls AppImage
     - name: Upload OSX App Image
@@ -73,7 +73,7 @@ jobs:
         name: jars
         path: artifacts
     - name: Package JAR as App Image
-      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input .\\artifacts --dest .\\AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --win-console --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}'
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input .\\artifacts --dest .\\AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --win-console --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}.ico'
     - name: View artifacts
       run: dir AppImage
     - name: Upload Windows App Image
@@ -98,7 +98,7 @@ jobs:
         name: jars
         path: artifacts
     - name: Package JAR as App Image
-      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}'
+      run: 'jpackage --name ${{ env.pkg-name }} --type app-image --input ./artifacts --dest ./AppImage --name GTEngineGrapher --main-class gtenginegrapher.Main --main-jar ${{ env.pkg-assembly }} --app-version ${{ env.pkg-version }} --icon ${{ env.pkg-icon }}.png'
     - name: View artifacts
       run: ls AppImage
     - name: Upload Linux App Image
