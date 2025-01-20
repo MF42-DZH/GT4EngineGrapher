@@ -10,7 +10,7 @@ object TorqueUnits extends ConfigKeys {
 
   val Kgfm: Unit = Unit(1.0, "kgf.m")
   val Nm: Unit = Unit(BigDecimal("9.807"), "Nm")
-  val Ftlbf: Unit = Unit(BigDecimal("7.233"), "ft.lbf")
+  val Lbfft: Unit = Unit(BigDecimal("7.233"), "lbf.ft")
 }
 
 object PowerUnits extends ConfigKeys {

@@ -40,9 +40,6 @@ case class EngineGraphPanel(
   private val power = new XYSeries(s"Power (${units._2})")
   private val stockPower = new XYSeries(s"Stock Power (${units._2})")
 
-  println(units._1.multiplier)
-  println(units._2.multiplier)
-
   rawGraphData.points.foreach { case (rpm, (tor, pow)) =>
     torque.add(rpm, tor * units._1.multiplier)
     power.add(rpm, pow * units._2.multiplier)
