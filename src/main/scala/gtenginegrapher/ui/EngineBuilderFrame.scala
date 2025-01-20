@@ -7,8 +7,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 
 import javax.swing._
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -226,18 +225,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       labelOverride: Option[Rep[String] => Rep[String]] = None,
     ): Seq[U] =
       if (hybridTick.isSelected) {
-        Await.result(
-          allWithNames[U, T](table, labelOverride).map(
+        allWithNames[U, T](table, labelOverride)
+          .map(
             _.map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
               .sortBy((up: U) => (up.carName, up.category)),
-          ),
-          Duration.Inf,
-        )
+          )
+          .runBlocking
       } else {
-        Await.result(
-          byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)),
-          Duration.Inf,
-        )
+        byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)).runBlocking
       }
 
     def generateCustomizer[T <: Object: ClassTag](
@@ -515,17 +510,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           val builder = Try {
             new EngineBuilder(
               name,
-              Await.result(
-                db.run(
-                  engines
-                    .filter(_.label.like(s"en\\_%${name.label}\\_%", esc = '\\'))
-                    .result
-                    .withStatements(ebf.getClass)
-                    .withCounting(ebf.getClass)
-                    .map(_.head),
-                ),
-                Duration.Inf,
-              ),
+              db.run(
+                engines
+                  .filter(_.label.like(s"en\\_%${name.label}\\_%", esc = '\\'))
+                  .result
+                  .withStatements(ebf.getClass)
+                  .withCounting(ebf.getClass)
+                  .map(_.head),
+              ).runBlocking,
             )
           } match {
             case Failure(exc)   =>
