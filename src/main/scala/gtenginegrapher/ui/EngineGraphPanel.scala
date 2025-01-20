@@ -20,6 +20,7 @@ case class EngineGraphPanel(
   private val name: SimpleName,
   private val engineBuilder: EngineBuilder,
   private val units: (TorqueUnits.KeyVal, PowerUnits.KeyVal),
+  private val normalizeGraphs: Boolean,
 ) extends JDialog(owner, s"Chart for ${name.name}")
   with ChartMouseListener
   with CommonMathOps {
@@ -72,6 +73,16 @@ case class EngineGraphPanel(
     val rangeAxis = new NumberAxis(s"${units._1}")
     rangeAxis.setAutoRangeIncludesZero(true)
 
+    if (!normalizeGraphs) {
+      rangeAxis.setRange(
+        rangeAxis.getRange.getLowerBound,
+        math.max(
+          torque.getMaxY,
+          power.getMaxY,
+        ) * 1.04,
+      )
+    }
+
     val df = rangeAxis.getLabelFont
     val ndf = new Font(df.getFamily, Font.BOLD, 16)
 
@@ -83,6 +94,16 @@ case class EngineGraphPanel(
   {
     val rangeAxis = new NumberAxis(s"${units._2}")
     rangeAxis.setAutoRangeIncludesZero(true)
+
+    if (!normalizeGraphs) {
+      rangeAxis.setRange(
+        rangeAxis.getRange.getLowerBound,
+        math.max(
+          torque.getMaxY,
+          power.getMaxY,
+        ) * 1.04,
+      )
+    }
 
     val df = rangeAxis.getLabelFont
     val ndf = new Font(df.getFamily, Font.BOLD, 16)

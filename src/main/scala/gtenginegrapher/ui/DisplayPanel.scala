@@ -7,28 +7,32 @@ import javax.swing._
 
 import gtenginegrapher.utils._
 
-class UnitPanel(
+class DisplayPanel(
   owner: JFrame,
-  saveInfoF: ((TorqueUnits.KeyVal, PowerUnits.KeyVal)) => Unit,
-  existingData: (TorqueUnits.KeyVal, PowerUnits.KeyVal),
-) extends JDialog(owner, s"Set Used Units") { up =>
+  saveInfoF: ((TorqueUnits.KeyVal, PowerUnits.KeyVal, Boolean)) => Unit,
+  existingData: (TorqueUnits.KeyVal, PowerUnits.KeyVal, Boolean),
+) extends JDialog(owner, s"Set Display Options") { up =>
   private val labels = new JPanel { ls =>
-    ls.setLayout(new GridLayout(3, 1, 0, 4))
+    ls.setLayout(new GridLayout(4, 1, 0, 4))
 
     ls.add(new JLabel("Torque Unit"), 0)
     ls.add(new JLabel("Power Unit"), 1)
-    ls.add(new JPanel(), 2)
+    ls.add(new JLabel("Normalize Graphs"), 2)
+    ls.add(new JPanel(), 3)
   }
 
   private val inputs = {
     val torque = new ConfigDropdown[TorqueUnits.type](TorqueUnits, existingData._1)
     val power = new ConfigDropdown[PowerUnits.type](PowerUnits, existingData._2)
+    val norm = new JCheckBox()
+    norm.setSelected(existingData._3)
 
     new JPanel { is =>
-      is.setLayout(new GridLayout(3, 1, 0, 4))
+      is.setLayout(new GridLayout(4, 1, 0, 4))
 
       is.add(torque, 0)
       is.add(power, 1)
+      is.add(norm, 2)
       is.add(
         new JButton("Submit") {
           addMouseListener(new MouseListener {
@@ -37,6 +41,7 @@ class UnitPanel(
                 (
                   torque.getSelectedItem.asInstanceOf[TorqueUnits.KeyVal],
                   power.getSelectedItem.asInstanceOf[PowerUnits.KeyVal],
+                  norm.isSelected,
                 ),
               )
 
@@ -49,7 +54,7 @@ class UnitPanel(
             override def mouseExited(e: MouseEvent): Unit = ()
           })
         },
-        2,
+        3,
       )
     }
   }
