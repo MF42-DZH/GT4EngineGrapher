@@ -3,8 +3,6 @@ package gtenginegrapher
 import javax.imageio.ImageIO
 import javax.swing.{SwingUtilities, UIManager}
 
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 

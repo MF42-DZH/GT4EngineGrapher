@@ -53,6 +53,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   private val listeners = new java.util.ArrayDeque[KeyEventPostProcessor](2)
 
   private var wearSaveData: Option[(BigDecimal, WearAdjustmentPanel.WearData)] = None
+  private var unitSaveData: (TorqueUnits.KeyVal, PowerUnits.KeyVal) =
+    (TorqueUnits.Kgfm, PowerUnits.Ps)
 
   // Car selector
   private val carSelector = new JComboBox[SimpleName](
@@ -61,6 +63,29 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       name  = "[Select a Car]",
     ) +: allNames.sortBy(_.name.toLowerCase)).toArray,
   )
+  private val unitButton = new JButton("Set Units") {
+    addMouseListener(new MouseListener {
+      override def mouseClicked(e: MouseEvent): Unit = {
+        val up = new UnitPanel(
+          ebf,
+          data => unitSaveData = data,
+          unitSaveData,
+        )
+
+        up.pack()
+        up.setLocationRelativeTo(null)
+        up.setResizable(false)
+        up.setVisible(true)
+      }
+
+      override def mousePressed(e: MouseEvent): Unit = ()
+      override def mouseReleased(e: MouseEvent): Unit = ()
+      override def mouseEntered(e: MouseEvent): Unit = ()
+      override def mouseExited(e: MouseEvent): Unit = ()
+    })
+  }
+  unitButton.setEnabled(false)
+
   private val wearButton = new JButton("Wear Settings") {
     addMouseListener(new MouseListener {
       override def mouseClicked(e: MouseEvent): Unit = {
@@ -101,6 +126,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     add(new JPanel() {
       setLayout(usedLayout)
       add(carSelector)
+      add(unitButton)
       add(wearButton)
       add(hybridTick)
     })
@@ -138,6 +164,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         customizerHome.removeAll()
         customizerHome.add(customizer)
         wearSaveData = None
+        unitButton.setEnabled(true)
         wearButton.setEnabled(true)
         hybridTick.setEnabled(true)
         ebf.pack()
@@ -146,6 +173,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     } else {
       hybridTick.setEnabled(false)
       hybridTick.setSelected(false)
+      unitButton.setEnabled(false)
       wearButton.setEnabled(false)
       ebf.pack()
       ebf.repaint()
@@ -554,7 +582,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           builder.chosenNitrousSetting = nosStrength
           builder.wearMultipliers = wearSaveData.map { case (m, _) => m }.getOrElse(BigDecimal(1))
 
-          val chart = EngineGraphPanel(ebf, name, builder)
+          val chart = EngineGraphPanel(ebf, name, builder, unitSaveData)
           chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
 
           chart.pack()

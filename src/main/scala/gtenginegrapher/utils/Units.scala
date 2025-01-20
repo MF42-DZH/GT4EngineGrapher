@@ -25,5 +25,5 @@ object PowerUnits extends ConfigKeys {
   val Cv: Unit = Unit(1.0, "CV")
   val Kw: Unit = Unit(BigDecimal("0.7355"), "kW")
   val Hp: Unit = Unit(BigDecimal("0.9863"), "HP")
-  val Bhp: Unit = Unit(BigDecimal("0.9863"), "ft.lbf")
+  val Bhp: Unit = Unit(BigDecimal("0.9863"), "BHP")
 }
