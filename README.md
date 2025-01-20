@@ -37,6 +37,10 @@ This UI style will be system-dependent. Windows and Mac OS uses Java's system-co
 
 ![Torque / power graph for the HPA Stage II R32](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/EngineGraph.png)
 
+### Display Options
+
+![Display Options Picker](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/DisplayOptions.png)
+
 ### Wear Editor
 
 ![Wear Editor for Oil and Engine Wear](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/WearEditor.png)
