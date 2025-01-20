@@ -6,7 +6,7 @@ This is a program trying to replicate the power/torque graphs you see in GT4's t
 
 All data is sourced from the SpecDB databases of GT4 (whose SQLite files were sourced from [Nenkai/GT4SaveEditor](https://github.com/Nenkai/GT4SaveEditor)), or extracted from GT4 Spec II using [Razer2015/GT4FS](https://github.com/Razer2015/GT4FS), or extracted from GT3 using [pez2k/GT3VOLExtractor](https://github.com/pez2k/gt2tools/tree/master/GT3VOLExtractor) and [Nenkai/GTDataSQLiteConverter](https://github.com/Nenkai/GTDataSQLiteConverter) by ddm and Nenkai.
 
-Currently, torque and power units are fixed to `kgf.m` and `PS` respectively.
+Currently, torque and power units are selectable, but any units that aren't `kgf.m` or `PS` may not convert accurately to what is shown in-game, as we do not have the unit conversion constants as of right now.
 
 ### High Priority Issues
 
