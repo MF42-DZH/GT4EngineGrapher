@@ -7,4 +7,8 @@ trait CommonMathOps {
   implicit class IntExtensions(n: Int) {
     def bd: BigDecimal = BigDecimal(n)
   }
+
+  implicit class RichBigDecimalOps(bd: BigDecimal) {
+    def twoDp: BigDecimal = bd.setScale(2, BigDecimal.RoundingMode.DOWN)
+  }
 }
