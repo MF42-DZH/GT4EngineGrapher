@@ -53,16 +53,16 @@ case class EngineGraphPanel(
   powerSC.addSeries(stockPower)
 
   private val plot = new XYPlot()
-  plot.setDataset(0, powerC)
-  plot.setDataset(1, torqueC)
+  plot.setDataset(0, torqueC)
+  plot.setDataset(1, powerC)
 
   if (engine != stockEngine) {
-    plot.setDataset(2, powerSC)
-    plot.setDataset(3, torqueSC)
+    plot.setDataset(2, torqueSC)
+    plot.setDataset(3, powerSC)
   }
 
   {
-    val rangeAxis = new NumberAxis("PS")
+    val rangeAxis = new NumberAxis("kgf.m")
     rangeAxis.setAutoRangeIncludesZero(true)
 
     val df = rangeAxis.getLabelFont
@@ -74,7 +74,7 @@ case class EngineGraphPanel(
   }
 
   {
-    val rangeAxis = new NumberAxis("kgf.m")
+    val rangeAxis = new NumberAxis("PS")
     rangeAxis.setAutoRangeIncludesZero(true)
 
     val df = rangeAxis.getLabelFont
@@ -223,12 +223,12 @@ case class EngineGraphPanel(
   crosshairs.addDomainCrosshair(rlCrosshair)
   crosshairs.addDomainCrosshair(rpmCrosshair)
 
-  plot.setRenderer(0, rendererP)
-  plot.setRenderer(1, rendererT)
+  plot.setRenderer(0, rendererT)
+  plot.setRenderer(1, rendererP)
 
   if (engine != stockEngine) {
-    plot.setRenderer(2, rendererSP)
-    plot.setRenderer(3, rendererST)
+    plot.setRenderer(2, rendererST)
+    plot.setRenderer(3, rendererSP)
   }
 
   plot.setBackgroundPaint(Color.BLACK)
