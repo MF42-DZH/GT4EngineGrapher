@@ -9,7 +9,7 @@ env:
   pkg-name: 'gtenginegrapher'
   pkg-image: 'GTEngineGrapher'
   pkg-version: '1.3.0'
-  pkg-icon: 'GTEG.ico'
+  pkg-icon: 'GTEG.png'
 
 jobs:
   fat:
