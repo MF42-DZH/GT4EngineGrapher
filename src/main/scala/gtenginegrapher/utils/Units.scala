@@ -9,8 +9,8 @@ object TorqueUnits extends ConfigKeys {
   override type KeyVal = Unit
 
   val Kgfm: Unit = Unit(1.0, "kgf.m")
-  val Nm: Unit = Unit(BigDecimal("9.807"), "Nm")
-  val Lbfft: Unit = Unit(BigDecimal("7.233"), "lbf.ft")
+  val Nm: Unit = Unit(BigDecimal("9.80665"), "Nm")
+  val Lbfft: Unit = Unit(BigDecimal("7.233002906"), "lbf.ft")
 }
 
 object PowerUnits extends ConfigKeys {
@@ -23,7 +23,7 @@ object PowerUnits extends ConfigKeys {
 
   val Ps: Unit = Unit(1.0, "PS")
   val Cv: Unit = Unit(1.0, "CV")
-  val Kw: Unit = Unit(BigDecimal("0.7355"), "kW")
-  val Hp: Unit = Unit(BigDecimal("0.9863"), "HP")
-  val Bhp: Unit = Unit(BigDecimal("0.9863"), "BHP")
+  val Kw: Unit = Unit(BigDecimal("0.73549875"), "kW")
+  val Hp: Unit = Unit(BigDecimal("0.9863200706"), "HP")
+  val Bhp: Unit = Unit(BigDecimal("0.9863200706"), "BHP")
 }
