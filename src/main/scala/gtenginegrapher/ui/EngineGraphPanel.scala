@@ -5,6 +5,7 @@ import java.awt.{BasicStroke, Color, Dimension, Font}
 import javax.swing.{JDialog, JFrame}
 
 import gtenginegrapher.schema.{SimpleEngine, SimpleName}
+import gtenginegrapher.utils._
 import gtenginegrapher.wrappers.{EngineBuilder, EngineGraph}
 import org.jfree.chart.{ChartMouseEvent, ChartMouseListener, ChartPanel, JFreeChart}
 import org.jfree.chart.axis.NumberAxis
@@ -18,8 +19,11 @@ case class EngineGraphPanel(
   owner: JFrame,
   private val name: SimpleName,
   private val engineBuilder: EngineBuilder,
+  private val units: (TorqueUnits.KeyVal, PowerUnits.KeyVal),
+  private val normalizeGraphs: Boolean,
 ) extends JDialog(owner, s"Chart for ${name.name}")
-  with ChartMouseListener {
+  with ChartMouseListener
+  with CommonMathOps {
   private val engine: SimpleEngine = engineBuilder.buildEngine()._2
   private val stockEngine: SimpleEngine = engineBuilder.buildStockEngine._2
 
@@ -28,22 +32,22 @@ case class EngineGraphPanel(
 
   private val torqueC = new XYSeriesCollection
   private val torqueSC = new XYSeriesCollection
-  private val torque = new XYSeries("Torque (kgf.m)")
-  private val stockTorque = new XYSeries("Stock Torque (kgf.m)")
+  private val torque = new XYSeries(s"Torque (${units._1})")
+  private val stockTorque = new XYSeries(s"Stock Torque (${units._1})")
 
   private val powerC = new XYSeriesCollection
   private val powerSC = new XYSeriesCollection
-  private val power = new XYSeries("Power (PS)")
-  private val stockPower = new XYSeries("Stock Power (PS)")
+  private val power = new XYSeries(s"Power (${units._2})")
+  private val stockPower = new XYSeries(s"Stock Power (${units._2})")
 
   rawGraphData.points.foreach { case (rpm, (tor, pow)) =>
-    torque.add(rpm, tor)
-    power.add(rpm, pow)
+    torque.add(rpm, tor * units._1.multiplier)
+    power.add(rpm, pow * units._2.multiplier)
   }
 
   rawStockGraphData.points.foreach { case (rpm, (tor, pow)) =>
-    stockTorque.add(rpm, tor)
-    stockPower.add(rpm, pow)
+    stockTorque.add(rpm, tor * units._1.multiplier)
+    stockPower.add(rpm, pow * units._2.multiplier)
   }
 
   torqueC.addSeries(torque)
@@ -53,17 +57,28 @@ case class EngineGraphPanel(
   powerSC.addSeries(stockPower)
 
   private val plot = new XYPlot()
-  plot.setDataset(0, powerC)
-  plot.setDataset(1, torqueC)
+  plot.setDataset(0, torqueC)
+  plot.setDataset(1, powerC)
+  plot.setRangeGridlinesVisible(false)
 
   if (engine != stockEngine) {
-    plot.setDataset(2, powerSC)
-    plot.setDataset(3, torqueSC)
+    plot.setDataset(2, torqueSC)
+    plot.setDataset(3, powerSC)
   }
 
   {
-    val rangeAxis = new NumberAxis("PS")
+    val rangeAxis = new NumberAxis(s"${units._1}")
     rangeAxis.setAutoRangeIncludesZero(true)
+
+    if (!normalizeGraphs) {
+      rangeAxis.setRange(
+        rangeAxis.getRange.getLowerBound,
+        math.max(
+          torque.getMaxY,
+          power.getMaxY,
+        ) * 1.04,
+      )
+    }
 
     val df = rangeAxis.getLabelFont
     val ndf = new Font(df.getFamily, Font.BOLD, 16)
@@ -74,8 +89,18 @@ case class EngineGraphPanel(
   }
 
   {
-    val rangeAxis = new NumberAxis("kgf.m")
+    val rangeAxis = new NumberAxis(s"${units._2}")
     rangeAxis.setAutoRangeIncludesZero(true)
+
+    if (!normalizeGraphs) {
+      rangeAxis.setRange(
+        rangeAxis.getRange.getLowerBound,
+        math.max(
+          torque.getMaxY,
+          power.getMaxY,
+        ) * 1.04,
+      )
+    }
 
     val df = rangeAxis.getLabelFont
     val ndf = new Font(df.getFamily, Font.BOLD, 16)
@@ -187,25 +212,25 @@ case class EngineGraphPanel(
     val Some(torqueAt) = (0 until torque.getItemCount)
       .map(torque.getDataItem)
       .find(item => item.getX.intValue() == crosshair.getValue.toInt)
-      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.DOWN))
+      .map(v => BigDecimal(v.getY.doubleValue()).twoDp)
     val Some(powerAt) = (0 until power.getItemCount)
       .map(power.getDataItem)
       .find(item => item.getX.intValue() == crosshair.getValue.toInt)
-      .map(v => BigDecimal(v.getY.doubleValue()).setScale(2, BigDecimal.RoundingMode.DOWN))
+      .map(v => BigDecimal(v.getY.doubleValue()).twoDp)
 
-    s" $torqueAt kgf.m & $powerAt PS @ ${crosshair.getValue.toInt} RPM "
+    s" $torqueAt ${units._1} & $powerAt ${units._2} @ ${crosshair.getValue.toInt} RPM "
   })
 
   peakTCrosshair.setLabelGenerator { _ =>
     val (rpm, t) = rawGraphData.peakTorque
-    s" ${t.setScale(2, BigDecimal.RoundingMode.DOWN)} kgf.m @ $rpm RPM "
+    s" ${(t * units._1.multiplier).twoDp} ${units._1} @ $rpm RPM "
   }
 
   peakTCrosshair.setValue(rawGraphData.peakTorque._1)
 
   peakPCrosshair.setLabelGenerator { _ =>
     val (rpm, p) = rawGraphData.peakPower
-    s" ${p.setScale(2, BigDecimal.RoundingMode.DOWN)} PS @ $rpm RPM "
+    s" ${(p * units._2.multiplier).twoDp} ${units._2} @ $rpm RPM "
   }
 
   peakPCrosshair.setValue(rawGraphData.peakPower._1)
@@ -223,12 +248,12 @@ case class EngineGraphPanel(
   crosshairs.addDomainCrosshair(rlCrosshair)
   crosshairs.addDomainCrosshair(rpmCrosshair)
 
-  plot.setRenderer(0, rendererP)
-  plot.setRenderer(1, rendererT)
+  plot.setRenderer(0, rendererT)
+  plot.setRenderer(1, rendererP)
 
   if (engine != stockEngine) {
-    plot.setRenderer(2, rendererSP)
-    plot.setRenderer(3, rendererST)
+    plot.setRenderer(2, rendererST)
+    plot.setRenderer(3, rendererSP)
   }
 
   plot.setBackgroundPaint(Color.BLACK)

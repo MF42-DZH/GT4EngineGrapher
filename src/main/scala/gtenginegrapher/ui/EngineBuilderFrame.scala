@@ -7,8 +7,7 @@ import java.util.concurrent.{ExecutorService, Executors}
 
 import javax.swing._
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
@@ -54,6 +53,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   private val listeners = new java.util.ArrayDeque[KeyEventPostProcessor](2)
 
   private var wearSaveData: Option[(BigDecimal, WearAdjustmentPanel.WearData)] = None
+  private var unitSaveData: (TorqueUnits.KeyVal, PowerUnits.KeyVal) =
+    (TorqueUnits.Kgfm, PowerUnits.Ps)
+  private var normalizeGraph: Boolean = true
 
   // Car selector
   private val carSelector = new JComboBox[SimpleName](
@@ -62,6 +64,32 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       name  = "[Select a Car]",
     ) +: allNames.sortBy(_.name.toLowerCase)).toArray,
   )
+  private val displayButton = new JButton("Display Options") {
+    addMouseListener(new MouseListener {
+      override def mouseClicked(e: MouseEvent): Unit = {
+        val up = new DisplayPanel(
+          ebf,
+          { case (t, p, n) =>
+            unitSaveData   = (t, p)
+            normalizeGraph = n
+          },
+          (unitSaveData._1, unitSaveData._2, normalizeGraph),
+        )
+
+        up.pack()
+        up.setLocationRelativeTo(null)
+        up.setResizable(false)
+        up.setVisible(true)
+      }
+
+      override def mousePressed(e: MouseEvent): Unit = ()
+      override def mouseReleased(e: MouseEvent): Unit = ()
+      override def mouseEntered(e: MouseEvent): Unit = ()
+      override def mouseExited(e: MouseEvent): Unit = ()
+    })
+  }
+  displayButton.setEnabled(false)
+
   private val wearButton = new JButton("Wear Settings") {
     addMouseListener(new MouseListener {
       override def mouseClicked(e: MouseEvent): Unit = {
@@ -102,6 +130,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     add(new JPanel() {
       setLayout(usedLayout)
       add(carSelector)
+      add(displayButton)
       add(wearButton)
       add(hybridTick)
     })
@@ -139,6 +168,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         customizerHome.removeAll()
         customizerHome.add(customizer)
         wearSaveData = None
+        displayButton.setEnabled(true)
         wearButton.setEnabled(true)
         hybridTick.setEnabled(true)
         ebf.pack()
@@ -147,6 +177,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     } else {
       hybridTick.setEnabled(false)
       hybridTick.setSelected(false)
+      displayButton.setEnabled(false)
       wearButton.setEnabled(false)
       ebf.pack()
       ebf.repaint()
@@ -226,18 +257,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       labelOverride: Option[Rep[String] => Rep[String]] = None,
     ): Seq[U] =
       if (hybridTick.isSelected) {
-        Await.result(
-          allWithNames[U, T](table, labelOverride).map(
+        allWithNames[U, T](table, labelOverride)
+          .map(
             _.map { case (name, upgrade) => upgrade.withCarName(name.toSimpleName.label) }
               .sortBy((up: U) => (up.carName, up.category)),
-          ),
-          Duration.Inf,
-        )
+          )
+          .runBlocking
       } else {
-        Await.result(
-          byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)),
-          Duration.Inf,
-        )
+        byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)).runBlocking
       }
 
     def generateCustomizer[T <: Object: ClassTag](
@@ -515,17 +542,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           val builder = Try {
             new EngineBuilder(
               name,
-              Await.result(
-                db.run(
-                  engines
-                    .filter(_.label.like(s"en\\_%${name.label}\\_%", esc = '\\'))
-                    .result
-                    .withStatements(ebf.getClass)
-                    .withCounting(ebf.getClass)
-                    .map(_.head),
-                ),
-                Duration.Inf,
-              ),
+              db.run(
+                engines
+                  .filter(_.label.like(s"en\\_%${name.label}\\_%", esc = '\\'))
+                  .result
+                  .withStatements(ebf.getClass)
+                  .withCounting(ebf.getClass)
+                  .map(_.head),
+              ).runBlocking,
             )
           } match {
             case Failure(exc)   =>
@@ -562,7 +586,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           builder.chosenNitrousSetting = nosStrength
           builder.wearMultipliers = wearSaveData.map { case (m, _) => m }.getOrElse(BigDecimal(1))
 
-          val chart = EngineGraphPanel(ebf, name, builder)
+          val chart = EngineGraphPanel(ebf, name, builder, unitSaveData, normalizeGraph)
           chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
 
           chart.pack()

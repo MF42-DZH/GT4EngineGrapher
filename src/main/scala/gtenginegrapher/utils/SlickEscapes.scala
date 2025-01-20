@@ -1,6 +1,7 @@
 package gtenginegrapher.utils
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
 
 import slick.jdbc.JdbcActionComponent
@@ -16,6 +17,10 @@ trait SlickEscapes {
       val (init, last) = (xs.init, xs.last)
       init.map(_.take(1)).mkString(start = "", sep = ".", end = ".") + last
     case Nil         => ""
+  }
+
+  implicit class RichFutures[T](fut: => Future[T]) {
+    def runBlocking: T = Await.result(fut, Duration.Inf)
   }
 
   implicit class RichStatements[R, T](

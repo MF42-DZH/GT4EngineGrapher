@@ -3,8 +3,6 @@ package gtenginegrapher
 import javax.imageio.ImageIO
 import javax.swing.{SwingUtilities, UIManager}
 
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
@@ -81,11 +79,14 @@ object Main extends SlickEscapes {
       case _           => false
     }
 
-    val allNames = Await.result(
-      db.run(names.result.withStatements(Main.getClass).withCounting(Main.getClass))
-        .map(_.map(_.toSimpleName)),
-      Duration.Inf,
-    )
+    val allNames = db
+      .run(
+        names.result
+          .withStatements(Main.getClass)
+          .withCounting(Main.getClass),
+      )
+      .map(_.map(_.toSimpleName))
+      .runBlocking
 
     UIManager.setLookAndFeel {
       val os = Option(System.getProperty("os.name"))
