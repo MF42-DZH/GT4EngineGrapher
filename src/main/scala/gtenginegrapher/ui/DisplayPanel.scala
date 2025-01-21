@@ -24,8 +24,10 @@ class DisplayPanel(
   private val inputs = {
     val torque = new ConfigDropdown[TorqueUnits.type](TorqueUnits, existingData._1)
     val power = new ConfigDropdown[PowerUnits.type](PowerUnits, existingData._2)
+
     val norm = new JCheckBox()
     norm.setSelected(existingData._3)
+    norm.setHorizontalAlignment(SwingConstants.CENTER)
 
     new JPanel { is =>
       is.setLayout(new GridLayout(4, 1, 0, 4))
