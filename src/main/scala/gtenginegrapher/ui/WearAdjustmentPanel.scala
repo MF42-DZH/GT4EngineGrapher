@@ -47,8 +47,8 @@ class WearAdjustmentPanel(
   private val (inputsAndSubmit, oilInput, carInput) = {
     val ((_, oms), (_, cms)) = existingData.getOrElse(WearAdjustmentPanel.defaultData)
 
-    val oil = UIUtils.numberOnlyTextField(_.setText(oms.toString))
-    val car = UIUtils.numberOnlyTextField(_.setText(cms.toString))
+    val oil = UIUtils.positiveNumberOnlyTextField(_.setText(oms.toString))
+    val car = UIUtils.positiveNumberOnlyTextField(_.setText(cms.toString))
 
     val panel = new JPanel {
       ikp =>

@@ -12,6 +12,7 @@ import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 import gtenginegrapher.schema._
+import gtenginegrapher.ui.UIUtils.RichJComboBox
 import gtenginegrapher.utils._
 import gtenginegrapher.wrappers._
 import slick.jdbc.SQLiteProfile.api._
@@ -95,7 +96,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       override def mouseClicked(e: MouseEvent): Unit = {
         val adj = new WearAdjustmentPanel(
           ebf,
-          carSelector.getSelectedItem.asInstanceOf[SimpleName],
+          carSelector.getItem,
           data => { wearSaveData = Some(data) },
           existingData = wearSaveData.map(_._2),
         )
@@ -158,7 +159,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     customizerHome.removeAll()
 
-    if (carSelector.getSelectedItem.asInstanceOf[SimpleName].label != "___not_a_car") {
+    if (carSelector.getItem.label != "___not_a_car") {
       customizerHome.add(loading)
       ebf.pack()
       ebf.repaint()
@@ -186,7 +187,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
   private var oldItem: Option[SimpleName] = None
   carSelector.addItemListener((e: ItemEvent) => {
-    val selected = carSelector.getSelectedItem.asInstanceOf[SimpleName]
+    val selected = carSelector.getItem
     if (
       (e.getStateChange == ItemEvent.SELECTED) &&
       (!hybridTick.isSelected || selected.label == "___not_a_car") &&
@@ -203,7 +204,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() { inner =>
     hybridTick.setEnabled(false)
 
-    private def name = carSelector.getSelectedItem.asInstanceOf[SimpleName]
+    private def name = carSelector.getItem
 
     val customizerLayout = new FlowLayout()
     customizerLayout.setHgap(8)
@@ -461,7 +462,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
       val label = new JLabel("Nitrous Strength")
-      val input = UIUtils.numberOnlyTextField()
+      val input = UIUtils.positiveNumberOnlyTextField()
 
       val panel = new JPanel(new GridLayout(0, 1, 2, 0)) {
         add(label)
@@ -476,7 +477,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     noss.addItemListener((e: ItemEvent) => {
       if (e.getStateChange == ItemEvent.SELECTED) {
-        val nit = noss.getSelectedItem.asInstanceOf[Nitrous]
+        val nit = noss.getItem
         val shouldEnable = nit.category != 0
 
         nsi.setEnabled(shouldEnable)
@@ -520,7 +521,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       add(new JButton("Map Engine") { button =>
         private def showChart(): Unit = {
           // Verify NOS.
-          val nos = noss.getSelectedItem.asInstanceOf[Nitrous]
+          val nos = noss.getItem
           var nosStrength: Option[Int] = None
 
           if (nos.category != 0) {
@@ -573,15 +574,15 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
             case Success(value) => value
           }
 
-          builder.chosenPolish         = Some(pps.getSelectedItem.asInstanceOf[PortPolish])
-          builder.chosenBalance        = Some(ebs.getSelectedItem.asInstanceOf[EngineBalance])
-          builder.chosenDisplacment    = Some(dus.getSelectedItem.asInstanceOf[DisplacementUp])
-          builder.chosenComputer       = Some(ecus.getSelectedItem.asInstanceOf[Computer])
-          builder.chosenNaTune         = Some(nas.getSelectedItem.asInstanceOf[NATune])
-          builder.chosenTurbine        = Some(tks.getSelectedItem.asInstanceOf[TurbineKit])
-          builder.chosenMuffler        = Some(exs.getSelectedItem.asInstanceOf[Muffler])
-          builder.chosenIntercooler    = Some(ics.getSelectedItem.asInstanceOf[Intercooler])
-          builder.chosenSupercharger   = Some(scs.getSelectedItem.asInstanceOf[Supercharger])
+          builder.chosenPolish         = Some(pps.getItem)
+          builder.chosenBalance        = Some(ebs.getItem)
+          builder.chosenDisplacment    = Some(dus.getItem)
+          builder.chosenComputer       = Some(ecus.getItem)
+          builder.chosenNaTune         = Some(nas.getItem)
+          builder.chosenTurbine        = Some(tks.getItem)
+          builder.chosenMuffler        = Some(exs.getItem)
+          builder.chosenIntercooler    = Some(ics.getItem)
+          builder.chosenSupercharger   = Some(scs.getItem)
           builder.chosenNos            = Some(nos)
           builder.chosenNitrousSetting = nosStrength
           builder.wearMultipliers = wearSaveData.map { case (m, _) => m }.getOrElse(BigDecimal(1))
@@ -596,8 +597,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
         private def showShoppingList(): Unit = {
           def collectUpgrade[U <: Upgrade](cb: JComboBox[U], name: String): Option[(String, U)] =
-            Option.when(cb.getSelectedItem.asInstanceOf[U].category > 0)(
-              (name, cb.getSelectedItem.asInstanceOf[U]),
+            Option.when(cb.getItem.category > 0)(
+              (name, cb.getItem),
             )
 
           val primaryPowerUpgrade: Seq[(String, Upgrade)] = Seq(

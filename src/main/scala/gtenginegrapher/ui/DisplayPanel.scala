@@ -5,6 +5,7 @@ import java.awt.event.{MouseEvent, MouseListener, WindowEvent}
 
 import javax.swing._
 
+import gtenginegrapher.ui.UIUtils.RichJComboBox
 import gtenginegrapher.utils._
 
 class DisplayPanel(
@@ -39,14 +40,7 @@ class DisplayPanel(
         new JButton("Submit") {
           addMouseListener(new MouseListener {
             override def mouseClicked(e: MouseEvent): Unit = {
-              saveInfoF(
-                (
-                  torque.getSelectedItem.asInstanceOf[TorqueUnits.KeyVal],
-                  power.getSelectedItem.asInstanceOf[PowerUnits.KeyVal],
-                  norm.isSelected,
-                ),
-              )
-
+              saveInfoF((torque.getItem, power.getItem, norm.isSelected))
               up.dispatchEvent(new WindowEvent(up, WindowEvent.WINDOW_CLOSING))
             }
 
