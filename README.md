@@ -1,6 +1,6 @@
 # Gran Turismo Engine Grapher
 
-[![Master Build](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
+[![Master Build with JPackage](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
 
 This is a program trying to replicate the power/torque graphs you see in GT4's tuning menu.
 
