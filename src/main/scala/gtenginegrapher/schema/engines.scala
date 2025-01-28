@@ -4,6 +4,8 @@ import gtenginegrapher.utils.CommonMathOps
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
+// It really feels like this table should've been split into several tables by Polyphony.
+// One containing the engine stats, the other containing the torque points.
 case class Engine(
   rowId: Int,
   label: String,

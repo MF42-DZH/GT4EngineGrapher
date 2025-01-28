@@ -14,17 +14,22 @@ import gtenginegrapher.Main
 class ShoppingList(
   owner: JFrame,
   upgrades: Map[String, Seq[(String, Upgrade)]],
+  engineRowId: Int,
   name: SimpleName,
 ) extends JDialog(owner, s"Shopping List for ${name.name}") {
   private val top = new DefaultMutableTreeNode(
-    s"Parts for ${name.name} - Total Cost: Cr. ${upgrades.values.flatMap(_.map(_._2)).foldLeft(0)(_ + _.price)}",
+    s"Parts for ${name.name} (RowId: $engineRowId) - Total Cost: Cr. ${upgrades.values
+        .flatMap(_.map(_._2))
+        .foldLeft(0)(_ + _.price)}",
   )
 
   for ((category, namedUpgrades) <- upgrades) {
     val categoryNode = new DefaultMutableTreeNode(category)
     for ((name, upgrade) <- namedUpgrades) {
       categoryNode.add(
-        new DefaultMutableTreeNode(s"$name - ${upgrade.toString} (Cr. ${upgrade.price})"),
+        new DefaultMutableTreeNode(
+          s"$name - ${upgrade.toString} (Cr. ${upgrade.price}; RowId: ${upgrade.rowId})",
+        ),
       )
     }
 

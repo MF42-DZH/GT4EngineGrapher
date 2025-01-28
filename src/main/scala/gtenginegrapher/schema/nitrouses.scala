@@ -33,6 +33,7 @@ case class UsedNitrous(
   override val price: Int,
   override val category: Int,
 ) extends HasTorqueRemapping {
+  override val rowId: Int = specs.rowId
   override def highRPMTorqueModifier: Int = 100 + setting
   override def lowRPMTorqueModifier: Int = 100 + setting
 }

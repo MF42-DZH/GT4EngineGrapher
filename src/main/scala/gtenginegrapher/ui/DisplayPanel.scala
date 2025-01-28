@@ -1,7 +1,7 @@
 package gtenginegrapher.ui
 
 import java.awt._
-import java.awt.event.{MouseEvent, MouseListener, WindowEvent}
+import java.awt.event.{ActionEvent, ActionListener, WindowEvent}
 
 import javax.swing._
 
@@ -12,7 +12,24 @@ class DisplayPanel(
   owner: JFrame,
   saveInfoF: ((TorqueUnits.KeyVal, PowerUnits.KeyVal, Boolean)) => Unit,
   existingData: (TorqueUnits.KeyVal, PowerUnits.KeyVal, Boolean),
-) extends JDialog(owner, s"Set Display Options") { up =>
+) extends JDialog(owner, s"Set Display Options")
+  with ActionListener { up =>
+  private val torque = new ConfigDropdown[TorqueUnits.type](TorqueUnits, existingData._1)
+  private val power = new ConfigDropdown[PowerUnits.type](PowerUnits, existingData._2)
+
+  private val norm = new JCheckBox()
+  norm.setSelected(existingData._3)
+  norm.setHorizontalAlignment(SwingConstants.CENTER)
+
+  private val submitCommand = "SUBMIT"
+
+  override def actionPerformed(e: ActionEvent): Unit = e.getActionCommand match {
+    case s if s == submitCommand =>
+      saveInfoF((torque.getItem, power.getItem, norm.isSelected))
+      up.dispatchEvent(new WindowEvent(up, WindowEvent.WINDOW_CLOSING))
+    case _                       => super.processEvent(e)
+  }
+
   private val labels = new JPanel { ls =>
     ls.setLayout(new GridLayout(4, 1, 0, 4))
 
@@ -23,35 +40,17 @@ class DisplayPanel(
   }
 
   private val inputs = {
-    val torque = new ConfigDropdown[TorqueUnits.type](TorqueUnits, existingData._1)
-    val power = new ConfigDropdown[PowerUnits.type](PowerUnits, existingData._2)
-
-    val norm = new JCheckBox()
-    norm.setSelected(existingData._3)
-    norm.setHorizontalAlignment(SwingConstants.CENTER)
-
     new JPanel { is =>
       is.setLayout(new GridLayout(4, 1, 0, 4))
+
+      private val submitButton = new JButton("Submit")
+      submitButton.addActionListener(up)
+      submitButton.setActionCommand(submitCommand)
 
       is.add(torque, 0)
       is.add(power, 1)
       is.add(norm, 2)
-      is.add(
-        new JButton("Submit") {
-          addMouseListener(new MouseListener {
-            override def mouseClicked(e: MouseEvent): Unit = {
-              saveInfoF((torque.getItem, power.getItem, norm.isSelected))
-              up.dispatchEvent(new WindowEvent(up, WindowEvent.WINDOW_CLOSING))
-            }
-
-            override def mousePressed(e: MouseEvent): Unit = ()
-            override def mouseReleased(e: MouseEvent): Unit = ()
-            override def mouseEntered(e: MouseEvent): Unit = ()
-            override def mouseExited(e: MouseEvent): Unit = ()
-          })
-        },
-        3,
-      )
+      is.add(submitButton, 3)
     }
   }
 

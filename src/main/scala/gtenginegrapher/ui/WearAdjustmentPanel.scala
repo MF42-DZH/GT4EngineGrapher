@@ -1,7 +1,7 @@
 package gtenginegrapher.ui
 
 import java.awt._
-import java.awt.event.{MouseEvent, MouseListener, WindowEvent}
+import java.awt.event.{ActionEvent, ActionListener, WindowEvent}
 
 import javax.swing._
 
@@ -14,7 +14,10 @@ class WearAdjustmentPanel(
   saveInfoF: ((BigDecimal, WearAdjustmentPanel.WearData)) => Unit,
   existingData: Option[WearAdjustmentPanel.WearData] = None,
 )(implicit val schema: AllSchema, wear: WearValues)
-  extends JDialog(owner, s"Wear Adjustment for ${name.name}") { adj =>
+  extends JDialog(owner, s"Wear Adjustment for ${name.name}")
+  with ActionListener { adj =>
+  private val submitCommand = "SUBMIT"
+
   private val (ticks, oilTick, carTick) = {
     val ((ots, _), (cts, _)) = existingData.getOrElse(WearAdjustmentPanel.defaultData)
 
@@ -55,25 +58,17 @@ class WearAdjustmentPanel(
       private val usedLayout = new GridLayout(4, 1, 0, 4)
       ikp.setLayout(usedLayout)
 
+      private val submitButton = new JButton("Submit")
+      submitButton.addActionListener(adj)
+      submitButton.setActionCommand(submitCommand)
+
       ikp.add(new JLabel("km Travelled Since") {
         setFont(getFont.deriveFont(Font.BOLD))
         setHorizontalAlignment(SwingConstants.CENTER)
       })
       ikp.add(oil, 1)
       ikp.add(car, 2)
-      ikp.add(
-        new JButton("Submit") {
-          addMouseListener(new MouseListener {
-            override def mouseClicked(e: MouseEvent): Unit = submitInfo()
-
-            override def mousePressed(e: MouseEvent): Unit = ()
-            override def mouseReleased(e: MouseEvent): Unit = ()
-            override def mouseEntered(e: MouseEvent): Unit = ()
-            override def mouseExited(e: MouseEvent): Unit = ()
-          })
-        },
-        3,
-      )
+      ikp.add(submitButton, 3)
     }
 
     (panel, oil, car)
@@ -91,6 +86,11 @@ class WearAdjustmentPanel(
       pan.add(ticks, 0)
       pan.add(inputsAndSubmit, 1)
     }
+  }
+
+  override def actionPerformed(e: ActionEvent): Unit = e.getActionCommand match {
+    case s if s == submitCommand => submitInfo()
+    case _                       => super.processEvent(e)
   }
 
   private def submitInfo(): Unit = {
