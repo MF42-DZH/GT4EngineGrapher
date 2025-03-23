@@ -21,13 +21,13 @@ object Main extends SlickEscapes {
       |
       |HELP        -h | --help
       |VERBOSE     -v | --verbose
-      |REGION      NTSC-U | US    | USA | America     (Gran Turismo 4 NTSC-U)
-      |            NTSC-K | KR    | KOR | Korea       (Gran Turismo 4 NTSC-K)
-      |            NTSC-J | JP    | JAP | Japan       (Gran Turismo 4 NTSC-J)
-      |            PAL    | EU    | EUR | Europe      (Gran Turismo 4 PAL)
-      |            SPECII | SPEC2                     (Gran Turismo 4 Spec II; based on NTSC-U)
-      |VERSION     1.05 | 1.06 | 1.07 | 1.08          (Spec II version; ignored if REGION is not Spec II; default: 1.08)
-      |GT3         gt3 | GT3                          (Gran Turismo 3 NTSC-U)
+      |REGION      NTSC-U | US    | USA | America       (Gran Turismo 4 NTSC-U)
+      |            NTSC-K | KR    | KOR | Korea         (Gran Turismo 4 NTSC-K)
+      |            NTSC-J | JP    | JAP | Japan         (Gran Turismo 4 NTSC-J)
+      |            PAL    | EU    | EUR | Europe        (Gran Turismo 4 PAL)
+      |            SPECII | SPEC2                       (Gran Turismo 4 Spec II; based on NTSC-U)
+      |VERSION     1.05 | 1.06 | 1.07 | 1.08 | 1.09     (Spec II version; ignored if REGION is not Spec II; default: 1.09)
+      |GT3         gt3 | GT3                            (Gran Turismo 3 NTSC-U)
       |
       |If REGION is not specified, GT4 NTSC-U is assumed.""".stripMargin,
   )
@@ -58,8 +58,9 @@ object Main extends SlickEscapes {
                     case "1.06" => gt4Schema.s2Db_1_06 -> Spec2("v1.06.x")
                     case "1.07" => gt4Schema.s2Db_1_07 -> Spec2("v1.07")
                     case "1.08" => gt4Schema.s2Db_1_08 -> Spec2("v1.08")
+                    case "1.09" => gt4Schema.s2Db_1_09 -> Spec2("v1.09")
                   }
-                  .getOrElse(gt4Schema.s2Db_1_08 -> Spec2("v1.08"))
+                  .getOrElse(gt4Schema.s2Db_1_09 -> Spec2("v1.09"))
             }
             .getOrElse(gt4Schema.usDb -> NtscU)
 
