@@ -1,6 +1,7 @@
 package gtenginegrapher.schema
 
 sealed trait Upgrade {
+  val rowId: Int
   val category: Int
   val price: Int
 }

@@ -6,7 +6,7 @@ import javax.swing.event.{DocumentEvent, DocumentListener}
 import scala.util.Try
 
 object UIUtils {
-  def numberOnlyTextField(
+  def positiveNumberOnlyTextField(
     modifications: JFormattedTextField => Unit = _ => (),
   ): JFormattedTextField = {
     val field = new JFormattedTextField()
@@ -33,5 +33,9 @@ object UIUtils {
     }
 
     field
+  }
+
+  implicit class RichJComboBox[E](cb: JComboBox[E]) {
+    def getItem: E = cb.getSelectedItem.asInstanceOf[E]
   }
 }

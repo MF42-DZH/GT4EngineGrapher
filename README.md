@@ -1,6 +1,6 @@
 # Gran Turismo Engine Grapher
 
-[![Master Build](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
+[![Master Build with JPackage](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/MF42-DZH/GT4EngineGrapher/actions/workflows/main.yml)
 
 This is a program trying to replicate the power/torque graphs you see in GT4's tuning menu.
 
@@ -45,7 +45,7 @@ This UI style will be system-dependent. Windows and Mac OS uses Java's system-co
 
 ![Wear Editor for Oil and Engine Wear](https://raw.githubusercontent.com/MF42-DZH/GT4EngineGrapher/dev/img/WearEditor.png)
 
-### Graph
+### Shopping List
 
 Shift-click on `Map Engine` to obtain a rudimentary shopping list for the required upgrades and maintenance.
 
