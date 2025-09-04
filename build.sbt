@@ -20,10 +20,10 @@ lazy val root = (project in file("."))
     name                 := "GTEngineGrapher",
     sbtAssemblySettings,
     libraryDependencies ++= Seq(
-      "com.typesafe.slick" %% "slick"          % "3.5.2",
-      "com.typesafe.slick" %% "slick-hikaricp" % "3.5.2",
-      "org.slf4j"           % "slf4j-nop"      % "2.0.16",
-      "org.xerial"          % "sqlite-jdbc"    % "3.48.0.0",
-      "org.jfree"           % "jfreechart"     % "1.5.5",
+      "com.typesafe.slick" %% "slick"          % "3.6.1",
+      "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
+      "org.slf4j"           % "slf4j-nop"      % "2.0.17",
+      "org.xerial"          % "sqlite-jdbc"    % "3.50.3.0",
+      "org.jfree"           % "jfreechart"     % "1.5.6",
     ),
   )

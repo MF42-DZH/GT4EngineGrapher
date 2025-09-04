@@ -22,14 +22,17 @@ object Main extends SlickEscapes {
       |HELP        -h | --help
       |VERBOSE     -v | --verbose
       |REGION      NTSC-U | US    | USA | America       (Gran Turismo 4 NTSC-U)
+      |            OPB-U                                (Gran Turismo 4 Online Public Beta NTSC-U)
       |            NTSC-K | KR    | KOR | Korea         (Gran Turismo 4 NTSC-K)
       |            NTSC-J | JP    | JAP | Japan         (Gran Turismo 4 NTSC-J)
+      |            OPB-J                                (Gran Turismo 4 Online Public Beta NTSC-J)
       |            PAL    | EU    | EUR | Europe        (Gran Turismo 4 PAL)
       |            SPECII | SPEC2                       (Gran Turismo 4 Spec II; based on NTSC-U)
       |VERSION     1.05 | 1.06 | 1.07 | 1.08 | 1.09     (Spec II version; ignored if REGION is not Spec II; default: 1.09)
       |GT3         gt3 | GT3                            (Gran Turismo 3 NTSC-U)
       |
-      |If REGION is not specified, GT4 NTSC-U is assumed.""".stripMargin,
+      |If REGION is not specified, GT4 NTSC-U is assumed. Asking for the GT3 ParamDB
+      |instead will supersede all other region options.""".stripMargin,
   )
 
   def main(args: Array[String]): Unit = {
@@ -47,10 +50,12 @@ object Main extends SlickEscapes {
         val (udb, reg): (JdbcDatabaseDef, Region) =
           args
             .collectFirst {
-              case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb  -> NtscU
-              case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb -> NtscK
-              case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb  -> NtscJ
-              case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb  -> Pal
+              case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb    -> NtscU
+              case "opb-u"                             => gt4Schema.usOpbDb -> NtscUOpb
+              case "ntsc-k" | "kr" | "kor" | "korea"   => gt4Schema.korDb   -> NtscK
+              case "ntsc-j" | "jp" | "jap" | "japan"   => gt4Schema.jpDb    -> NtscJ
+              case "opb-j"                             => gt4Schema.jpOpbDb -> NtscJOpb
+              case "pal" | "eu" | "eur" | "europe"     => gt4Schema.euDb    -> Pal
               case "specii" | "spec2"                  =>
                 args
                   .collectFirst {
