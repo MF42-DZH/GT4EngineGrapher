@@ -100,10 +100,12 @@ class GT4AllSchema
   with GT4IntercoolerProvider
   with GT4NitrousProvider
   with AllSchema {
-  lazy val usDb = createTempDb("/GT4_PREMIUM_US2560.sqlite")
-  lazy val jpDb = createTempDb("/GT4_PREMIUM_JP2560.sqlite")
+  lazy val usDb = createTempDb("/GT4_US2560.sqlite")
+  lazy val jpDb = createTempDb("/GT4_JP2560.sqlite")
   lazy val korDb = createTempDb("/GT4_KR2560.sqlite")
   lazy val euDb = createTempDb("/GT4_EU2560.sqlite")
+  lazy val usOpbDb = createTempDb("/GT4_PREMIUM_US2560.sqlite")
+  lazy val jpOpbDb = createTempDb("/GT4_PREMIUM_JP2560.sqlite")
 
   lazy val s2Db_1_05 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_05.sqlite")
   lazy val s2Db_1_06 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_06.sqlite")
