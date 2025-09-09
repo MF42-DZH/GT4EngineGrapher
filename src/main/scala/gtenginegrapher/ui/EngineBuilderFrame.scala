@@ -34,8 +34,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   setTitle {
     "Gran Turismo Engine Charter - " +
       (schema match {
-        case _: GT3AllSchema => "Gran Turismo 3"
-        case _: GT4AllSchema => "Gran Turismo 4"
+        case _: GT3AllSchema   => "Gran Turismo 3"
+        case _: GT4AllSchema   => "Gran Turismo 4"
+        case _: GTPspAllSchema => "Gran Turismo PSP"
+        case _                 => "UNKNOWN"
       }) +
       s" - ${region.toString}"
   }
@@ -137,8 +139,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         customizerHome.add(customizer)
         wearSaveData = None
         displayButton.setEnabled(true)
-        wearButton.setEnabled(true)
-        hybridTick.setEnabled(true)
+        wearButton.setEnabled(!wear.isInstanceOf[WearNonexistent])
+        hybridTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
         ebf.pack()
         ebf.repaint()
       }: Runnable)
@@ -253,7 +255,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](
       table: TableQuery[T],
       labelOverride: Option[Rep[String] => Rep[String]] = None,
-    ): Seq[U] =
+    ): Seq[U] = {
+      if (schema.isInstanceOf[GTPspAllSchema]) return Seq.empty[U]
+
       if (hybridTick.isSelected) {
         allWithNames[U, T](table, labelOverride)
           .map(
@@ -264,6 +268,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       } else {
         byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)).runBlocking
       }
+    }
 
     def generateCustomizer[T <: Object: ClassTag](
       label: String,
@@ -278,6 +283,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         }
         add(selector)
       }
+
+      selector.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
 
       (selector, panel)
     }
@@ -660,7 +667,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         KeyboardFocusManager.getCurrentKeyboardFocusManager.addKeyEventPostProcessor {
           val listener = new KeyEventPostProcessor {
             override def postProcessKeyEvent(e: KeyEvent): Boolean = {
-              if (e.isShiftDown) {
+              if (e.isShiftDown && !schema.isInstanceOf[GTPspAllSchema]) {
                 button.setText("Get Shopping List")
                 button.setActionCommand(ShowShoppingList.toString)
               } else if (!e.isShiftDown) {

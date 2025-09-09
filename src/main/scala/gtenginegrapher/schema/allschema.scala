@@ -126,3 +126,33 @@ class GT4AllSchema
   override type IntercoolerTable = IntercoolerT
   override type NitrousTable = NitrousT
 }
+
+class GTPspAllSchema
+  extends GT4NameProvider
+  with GT4EngineProvider
+  with GT4NATunesProvider
+  with GT4SuperchargerProvider
+  with GT4TurbineKitProvider
+  with GT4PortPolishProvider
+  with GT4EngineBalanceProvider
+  with GT4MufflerProvider
+  with GT4DisplacementUpProvider
+  with GT4ComputerProvider
+  with GT4IntercoolerProvider
+  with GT4NitrousProvider
+  with AllSchema {
+  lazy val jpPspDb = createTempDb("/GT_PSP_JP2817.sqlite")
+
+  override type NameTable = NameT
+  override type EngineTable = EngineT
+  override type NATuneTable = NATuneT
+  override type SuperchargerTable = SuperchargerT
+  override type TurbineKitTable = TurbineKitT
+  override type PortPolishTable = PortPolishT
+  override type EngineBalanceTable = EngineBalanceT
+  override type MufflerTable = MufflerT
+  override type DisplacementUpTable = DisplacementUpT
+  override type ComputerTable = ComputerT
+  override type IntercoolerTable = IntercoolerT
+  override type NitrousTable = NitrousT
+}
