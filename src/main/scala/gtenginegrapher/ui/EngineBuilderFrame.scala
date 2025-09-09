@@ -614,6 +614,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
                   override val price: Int = schema match {
                     case _: GT3AllSchema => 250
                     case _: GT4AllSchema => 50
+                    case _: GTPspAllSchema => 0
                   }
 
                   override def toString: String = "Applied"
