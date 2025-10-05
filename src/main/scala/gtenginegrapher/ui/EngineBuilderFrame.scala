@@ -612,8 +612,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
                   override val category: Int = 1
                   override val price: Int = schema match {
-                    case _: GT3AllSchema => 250
-                    case _: GT4AllSchema => 50
+                    case _: GT3AllSchema   => 250
+                    case _: GT4AllSchema   => 50
                     case _: GTPspAllSchema => 0
                   }
 

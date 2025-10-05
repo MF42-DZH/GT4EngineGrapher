@@ -112,6 +112,7 @@ class GT4AllSchema
   lazy val s2Db_1_07 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_07.sqlite")
   lazy val s2Db_1_08 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_08.sqlite")
   lazy val s2Db_1_09 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_09.sqlite")
+  lazy val s2Db_1_10 = createTempDb("/GT4_PREMIUM_US2560-SPECII-v1_10.sqlite")
 
   override type NameTable = NameT
   override type EngineTable = EngineT
