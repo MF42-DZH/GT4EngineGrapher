@@ -84,7 +84,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   wearButton.setActionCommand(OpenWearPanel.toString)
   wearButton.setEnabled(false)
 
-  private val hybridTick = new JCheckBox("Allow Hybriding?")
+  private val bypassTick = new JCheckBox("Bypass Part Restrictions")
+  bypassTick.setEnabled(false)
+
+  private val hybridTick = new JCheckBox("Allow Hybriding")
   hybridTick.setEnabled(false)
 
   add(new JPanel() {
@@ -102,6 +105,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       add(carSelector)
       add(displayButton)
       add(wearButton)
+      add(bypassTick)
       add(hybridTick)
     })
 
@@ -140,11 +144,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         wearSaveData = None
         displayButton.setEnabled(true)
         wearButton.setEnabled(!wear.isInstanceOf[WearNonexistent])
+        bypassTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema] && !hybridTick.isSelected)
         hybridTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
         ebf.pack()
         ebf.repaint()
       }: Runnable)
     } else {
+      bypassTick.setEnabled(false)
+      bypassTick.setSelected(false)
       hybridTick.setEnabled(false)
       hybridTick.setSelected(false)
       displayButton.setEnabled(false)
@@ -202,6 +209,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   // Car customizer
   private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() with ActionListener { inner =>
     hybridTick.setEnabled(false)
+    bypassTick.setEnabled(false)
 
     private def name = carSelector.getItem
 
@@ -427,41 +435,50 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
     bar.setValue(10)
 
-    // Only allow one aspiration to be active, if hybriding is disabled:
-    if (!hybridTick.isSelected) {
-      nas.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
-            .asInstanceOf[NATune]
-            .category > 0
-        ) {
-          tks.setSelectedIndex(0)
-          scs.setSelectedIndex(0)
-        }
-      })
+    // Only allow one aspiration to be active, if hybriding is disabled or bypassing isn't enabled.
+    private def cannotBypass() = !hybridTick.isSelected && !bypassTick.isSelected
 
-      tks.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
-            .asInstanceOf[TurbineKit]
-            .category > 0
-        ) {
-          nas.setSelectedIndex(0)
-          scs.setSelectedIndex(0)
-        }
-      })
+    nas.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
+          .asInstanceOf[NATune]
+          .category > 0) && cannotBypass()
+      ) {
+        tks.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      }
+    })
 
-      scs.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
-            .asInstanceOf[Supercharger]
-            .category > 0
-        ) {
-          nas.setSelectedIndex(0)
-          tks.setSelectedIndex(0)
-        }
-      })
-    }
+    tks.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
+          .asInstanceOf[TurbineKit]
+          .category > 0) && cannotBypass()
+      ) {
+        nas.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      }
+    })
+
+    scs.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
+          .asInstanceOf[Supercharger]
+          .category > 0) && cannotBypass()
+      ) {
+        nas.setSelectedIndex(0)
+        tks.setSelectedIndex(0)
+      }
+    })
+
+    // Unequip all primary power parts if bypass tick is disabled and hybriding is disabled.
+    bypassTick.addItemListener((_: ItemEvent) =>
+      if (cannotBypass()) {
+        nas.setSelectedIndex(0)
+        tks.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      },
+    )
 
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
@@ -698,6 +715,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       })
     })
     bar.setValue(12)
+
+    if (hybridTick.isSelected) bypassTick.setSelected(true)
+    else bypassTick.setSelected(false)
 
     hybridTick.setEnabled(true)
   }
