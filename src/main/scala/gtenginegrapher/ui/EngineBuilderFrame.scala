@@ -34,8 +34,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   setTitle {
     "Gran Turismo Engine Charter - " +
       (schema match {
-        case _: GT3AllSchema => "Gran Turismo 3"
-        case _: GT4AllSchema => "Gran Turismo 4"
+        case _: GT3AllSchema   => "Gran Turismo 3"
+        case _: GT4AllSchema   => "Gran Turismo 4"
+        case _: GTPspAllSchema => "Gran Turismo PSP"
+        case _                 => "UNKNOWN"
       }) +
       s" - ${region.toString}"
   }
@@ -82,7 +84,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   wearButton.setActionCommand(OpenWearPanel.toString)
   wearButton.setEnabled(false)
 
-  private val hybridTick = new JCheckBox("Allow Hybriding?")
+  private val bypassTick = new JCheckBox("Bypass Part Restrictions")
+  bypassTick.setEnabled(false)
+
+  private val hybridTick = new JCheckBox("Allow Hybriding")
   hybridTick.setEnabled(false)
 
   add(new JPanel() {
@@ -100,6 +105,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       add(carSelector)
       add(displayButton)
       add(wearButton)
+      add(bypassTick)
       add(hybridTick)
     })
 
@@ -137,12 +143,15 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         customizerHome.add(customizer)
         wearSaveData = None
         displayButton.setEnabled(true)
-        wearButton.setEnabled(true)
-        hybridTick.setEnabled(true)
+        wearButton.setEnabled(!wear.isInstanceOf[WearNonexistent])
+        bypassTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema] && !hybridTick.isSelected)
+        hybridTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
         ebf.pack()
         ebf.repaint()
       }: Runnable)
     } else {
+      bypassTick.setEnabled(false)
+      bypassTick.setSelected(false)
       hybridTick.setEnabled(false)
       hybridTick.setSelected(false)
       displayButton.setEnabled(false)
@@ -200,6 +209,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   // Car customizer
   private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() with ActionListener { inner =>
     hybridTick.setEnabled(false)
+    bypassTick.setEnabled(false)
 
     private def name = carSelector.getItem
 
@@ -253,7 +263,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     def getUpgrades[U <: CanHaveCarName, T <: SpecTable[U]](
       table: TableQuery[T],
       labelOverride: Option[Rep[String] => Rep[String]] = None,
-    ): Seq[U] =
+    ): Seq[U] = {
+      if (schema.isInstanceOf[GTPspAllSchema]) return Seq.empty[U]
+
       if (hybridTick.isSelected) {
         allWithNames[U, T](table, labelOverride)
           .map(
@@ -264,6 +276,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       } else {
         byLabel[U, T](table, labelOverride).map(_.sortBy(_.category)).runBlocking
       }
+    }
 
     def generateCustomizer[T <: Object: ClassTag](
       label: String,
@@ -278,6 +291,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         }
         add(selector)
       }
+
+      selector.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
 
       (selector, panel)
     }
@@ -420,41 +435,50 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
     bar.setValue(10)
 
-    // Only allow one aspiration to be active, if hybriding is disabled:
-    if (!hybridTick.isSelected) {
-      nas.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
-            .asInstanceOf[NATune]
-            .category > 0
-        ) {
-          tks.setSelectedIndex(0)
-          scs.setSelectedIndex(0)
-        }
-      })
+    // Only allow one aspiration to be active, if hybriding is disabled or bypassing isn't enabled.
+    private def cannotBypass() = !hybridTick.isSelected && !bypassTick.isSelected
 
-      tks.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
-            .asInstanceOf[TurbineKit]
-            .category > 0
-        ) {
-          nas.setSelectedIndex(0)
-          scs.setSelectedIndex(0)
-        }
-      })
+    nas.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && nas.getSelectedItem
+          .asInstanceOf[NATune]
+          .category > 0) && cannotBypass()
+      ) {
+        tks.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      }
+    })
 
-      scs.addItemListener((e: ItemEvent) => {
-        if (
-          e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
-            .asInstanceOf[Supercharger]
-            .category > 0
-        ) {
-          nas.setSelectedIndex(0)
-          tks.setSelectedIndex(0)
-        }
-      })
-    }
+    tks.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && tks.getSelectedItem
+          .asInstanceOf[TurbineKit]
+          .category > 0) && cannotBypass()
+      ) {
+        nas.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      }
+    })
+
+    scs.addItemListener((e: ItemEvent) => {
+      if (
+        (e.getStateChange == ItemEvent.SELECTED && scs.getSelectedItem
+          .asInstanceOf[Supercharger]
+          .category > 0) && cannotBypass()
+      ) {
+        nas.setSelectedIndex(0)
+        tks.setSelectedIndex(0)
+      }
+    })
+
+    // Unequip all primary power parts if bypass tick is disabled and hybriding is disabled.
+    bypassTick.addItemListener((_: ItemEvent) =>
+      if (cannotBypass()) {
+        nas.setSelectedIndex(0)
+        tks.setSelectedIndex(0)
+        scs.setSelectedIndex(0)
+      },
+    )
 
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
@@ -605,8 +629,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
                   override val category: Int = 1
                   override val price: Int = schema match {
-                    case _: GT3AllSchema => 250
-                    case _: GT4AllSchema => 50
+                    case _: GT3AllSchema   => 250
+                    case _: GT4AllSchema   => 50
+                    case _: GTPspAllSchema => 0
                   }
 
                   override def toString: String = "Applied"
@@ -660,7 +685,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         KeyboardFocusManager.getCurrentKeyboardFocusManager.addKeyEventPostProcessor {
           val listener = new KeyEventPostProcessor {
             override def postProcessKeyEvent(e: KeyEvent): Boolean = {
-              if (e.isShiftDown) {
+              if (e.isShiftDown && !schema.isInstanceOf[GTPspAllSchema]) {
                 button.setText("Get Shopping List")
                 button.setActionCommand(ShowShoppingList.toString)
               } else if (!e.isShiftDown) {
@@ -690,6 +715,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       })
     })
     bar.setValue(12)
+
+    if (hybridTick.isSelected) bypassTick.setSelected(true)
+    else bypassTick.setSelected(false)
 
     hybridTick.setEnabled(true)
   }

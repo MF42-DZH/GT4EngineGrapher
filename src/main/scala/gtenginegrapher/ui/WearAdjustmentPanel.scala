@@ -5,8 +5,13 @@ import java.awt.event.{ActionEvent, ActionListener, WindowEvent}
 
 import javax.swing._
 
-import gtenginegrapher.schema.{AllSchema, GT3AllSchema, GT4AllSchema, SimpleName}
-import gtenginegrapher.wrappers.{WearAffectedByPrizeStatus, WearUnaffectedByPrizeStatus, WearValues}
+import gtenginegrapher.schema.{AllSchema, GT3AllSchema, GT4AllSchema, GTPspAllSchema, SimpleName}
+import gtenginegrapher.wrappers.{
+  WearAffectedByPrizeStatus,
+  WearNonexistent,
+  WearUnaffectedByPrizeStatus,
+  WearValues,
+}
 
 class WearAdjustmentPanel(
   owner: JFrame,
@@ -29,8 +34,15 @@ class WearAdjustmentPanel(
     }
 
     wear match {
-      case _: WearUnaffectedByPrizeStatus => car.setEnabled(false)
-      case _                              => car.setEnabled(true)
+      case _: WearNonexistent             =>
+        oil.setEnabled(false)
+        car.setEnabled(false)
+      case _: WearUnaffectedByPrizeStatus =>
+        oil.setEnabled(true)
+        car.setEnabled(false)
+      case _                              =>
+        oil.setEnabled(true)
+        car.setEnabled(true)
     }
 
     val panel = new JPanel {
@@ -57,6 +69,11 @@ class WearAdjustmentPanel(
       ikp =>
       private val usedLayout = new GridLayout(4, 1, 0, 4)
       ikp.setLayout(usedLayout)
+
+      if (wear.isInstanceOf[WearNonexistent]) {
+        oil.setEnabled(false)
+        car.setEnabled(false)
+      }
 
       private val submitButton = new JButton("Submit")
       submitButton.addActionListener(adj)
@@ -100,6 +117,7 @@ class WearAdjustmentPanel(
         status.engineMultiplier(carInput.getText.toInt, carTick.isSelected)
       case status: WearUnaffectedByPrizeStatus =>
         status.engineMultiplier(carInput.getText.toInt)
+      case _                                   => BigDecimal(1)
     }
 
     val saveData = (
@@ -116,7 +134,8 @@ object WearAdjustmentPanel {
   type WearData = ((Boolean, Int), (Boolean, Int))
 
   def defaultData(implicit schema: AllSchema): WearData = schema match {
-    case _: GT3AllSchema => (false -> 0, true -> 0)
-    case _: GT4AllSchema => (false -> 0, false -> 0)
+    case _: GT3AllSchema   => (false -> 0, true -> 0)
+    case _: GT4AllSchema   => (false -> 0, false -> 0)
+    case _: GTPspAllSchema => (false -> 0, false -> 0)
   }
 }

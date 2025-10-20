@@ -6,8 +6,6 @@ import gtenginegrapher.utils.CommonMathOps
   * trait encodes a common interface between distance travelled and modifiers given by them.
   */
 sealed trait WearValues extends CommonMathOps {
-  // TODO: Have a UI toggle that can be ticked once the user has changed oil.
-  //       If unticked, treat as if the oil is normal (GT4) or dirty (GT3).
   def oilMultiplier(kmSinceOilChange: Int, hasBeenChanged: Boolean): BigDecimal
 
   final val asBase: WearValues = this
@@ -19,6 +17,12 @@ sealed trait WearAffectedByPrizeStatus extends WearValues {
 
 sealed trait WearUnaffectedByPrizeStatus extends WearValues {
   def engineMultiplier(kmTotalTravelled: Int): BigDecimal
+}
+
+sealed trait WearNonexistent extends WearUnaffectedByPrizeStatus {
+  override def oilMultiplier(kmSinceOilChange: Int, hasBeenChanged: Boolean): BigDecimal = 1
+
+  override def engineMultiplier(kmTotalTravelled: Int): BigDecimal = 1
 }
 
 case object GT3Wear extends WearAffectedByPrizeStatus {
@@ -74,3 +78,5 @@ case object GT4Wear extends WearUnaffectedByPrizeStatus {
     case _              => BigDecimal("0.95")
   }
 }
+
+case object GTPspWear extends WearNonexistent

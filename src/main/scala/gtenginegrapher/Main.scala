@@ -9,7 +9,7 @@ import scala.language.postfixOps
 import gtenginegrapher.schema._
 import gtenginegrapher.ui.EngineBuilderFrame
 import gtenginegrapher.utils._
-import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, WearValues}
+import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, GTPspWear, WearValues}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
 
@@ -21,15 +21,17 @@ object Main extends SlickEscapes {
       |
       |HELP        -h | --help
       |VERBOSE     -v | --verbose
-      |REGION      NTSC-U | US    | USA | America       (Gran Turismo 4 NTSC-U)
-      |            OPB-U                                (Gran Turismo 4 Online Public Beta NTSC-U)
-      |            NTSC-K | KR    | KOR | Korea         (Gran Turismo 4 NTSC-K)
-      |            NTSC-J | JP    | JAP | Japan         (Gran Turismo 4 NTSC-J)
-      |            OPB-J                                (Gran Turismo 4 Online Public Beta NTSC-J)
-      |            PAL    | EU    | EUR | Europe        (Gran Turismo 4 PAL)
-      |            SPECII | SPEC2                       (Gran Turismo 4 Spec II; based on NTSC-U)
-      |VERSION     1.05 | 1.06 | 1.07 | 1.08 | 1.09     (Spec II version; ignored if REGION is not Spec II; default: 1.09)
-      |GT3         gt3 | GT3                            (Gran Turismo 3 NTSC-U)
+      |REGION      NTSC-U | US    | USA | America         (Gran Turismo 4 NTSC-U)
+      |            OPB-U                                  (Gran Turismo 4 Online Public Beta NTSC-U)
+      |            NTSC-K | KR    | KOR | Korea           (Gran Turismo 4 NTSC-K)
+      |            NTSC-J | JP    | JAP | Japan           (Gran Turismo 4 NTSC-J)
+      |            OPB-J                                  (Gran Turismo 4 Online Public Beta NTSC-J)
+      |            PAL    | EU    | EUR | Europe          (Gran Turismo 4 PAL)
+      |            SPECII | SPEC2                         (Gran Turismo 4 Spec II; based on NTSC-U)
+      |            PSP                                    (Gran Turismo PSP NTSC-J)
+      |VERSION     1.05 | 1.06 | 1.07 | 1.08 | 1.09 |     (Spec II version; ignored if REGION is not Spec II; default: 1.10)
+      |            1.10
+      |GT3         gt3 | GT3                              (Gran Turismo 3 NTSC-U)
       |
       |If REGION is not specified, GT4 NTSC-U is assumed. Asking for the GT3 ParamDB
       |instead will supersede all other region options.""".stripMargin,
@@ -45,7 +47,7 @@ object Main extends SlickEscapes {
 
     // TODO: Get a proper argument parser. This is getting out of hand.
     implicit val (schema: AllSchema, db: JdbcDatabaseDef, wear: WearValues, region: Region) =
-      if (!args.exists(_.toLowerCase == "gt3")) {
+      if (!args.exists(arg => Set("gt3", "psp").contains(arg.toLowerCase))) {
         val gt4Schema: GT4AllSchema = new GT4AllSchema
         val (udb, reg): (JdbcDatabaseDef, Region) =
           args
@@ -64,17 +66,23 @@ object Main extends SlickEscapes {
                     case "1.07" => gt4Schema.s2Db_1_07 -> Spec2("v1.07")
                     case "1.08" => gt4Schema.s2Db_1_08 -> Spec2("v1.08")
                     case "1.09" => gt4Schema.s2Db_1_09 -> Spec2("v1.09")
+                    case "1.10" => gt4Schema.s2Db_1_10 -> Spec2("v1.10")
                   }
-                  .getOrElse(gt4Schema.s2Db_1_09 -> Spec2("v1.09"))
+                  .getOrElse(gt4Schema.s2Db_1_09 -> Spec2("v1.10"))
             }
             .getOrElse(gt4Schema.usDb -> NtscU)
 
         (gt4Schema.asBase, udb, GT4Wear.asBase, reg)
-      } else {
+      } else if (args.exists(_.toLowerCase == "gt3")) {
         val gt3Schema: GT3AllSchema = new GT3AllSchema
         val udb = gt3Schema.usDb
 
         (gt3Schema.asBase, udb, GT3Wear.asBase, NtscU)
+      } else if (args.exists(_.toLowerCase == "psp")) {
+        val gtPspSchema: GTPspAllSchema = new GTPspAllSchema
+        val udb = gtPspSchema.jpPspDb
+
+        (gtPspSchema.asBase, udb, GTPspWear.asBase, NtscJ)
       }
 
     import schema._
