@@ -51,6 +51,7 @@ object Main extends SlickEscapes {
         val gt4Schema: GT4AllSchema = new GT4AllSchema
         val (udb, reg): (JdbcDatabaseDef, Region) =
           args
+            .map(_.toLowerCase)
             .collectFirst {
               case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb    -> NtscU
               case "opb-u"                             => gt4Schema.usOpbDb -> NtscUOpb
