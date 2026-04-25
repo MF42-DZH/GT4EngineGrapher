@@ -52,3 +52,5 @@ trait GT3MufflerProvider {
 
   lazy val mufflers = TableQuery[MufflerT]
 }
+
+trait GTCMufflerProvider extends GT3MufflerProvider

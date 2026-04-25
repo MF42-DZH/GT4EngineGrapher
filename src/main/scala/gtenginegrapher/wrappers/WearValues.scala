@@ -80,3 +80,5 @@ case object GT4Wear extends WearUnaffectedByPrizeStatus {
 }
 
 case object GTPspWear extends WearNonexistent
+
+case object GTCWear extends WearNonexistent

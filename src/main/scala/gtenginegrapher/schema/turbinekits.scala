@@ -108,3 +108,5 @@ trait GT3TurbineKitProvider {
 
   lazy val turbineKits = TableQuery[TurbineKitT]
 }
+
+trait GTCTurbineKitProvider extends GT3TurbineKitProvider

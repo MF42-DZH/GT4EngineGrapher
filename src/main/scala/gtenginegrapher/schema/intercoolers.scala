@@ -51,3 +51,5 @@ trait GT3IntercoolerProvider {
 
   lazy val intercoolers = TableQuery[IntercoolerT]
 }
+
+trait GTCIntercoolerProvider extends GT3IntercoolerProvider

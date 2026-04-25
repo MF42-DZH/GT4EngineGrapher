@@ -37,6 +37,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         case _: GT3AllSchema   => "Gran Turismo 3"
         case _: GT4AllSchema   => "Gran Turismo 4"
         case _: GTPspAllSchema => "Gran Turismo PSP"
+        case _: GTCAllSchema   => "Gran Turismo Concept"
         case _                 => "UNKNOWN"
       }) +
       s" - ${region.toString}"

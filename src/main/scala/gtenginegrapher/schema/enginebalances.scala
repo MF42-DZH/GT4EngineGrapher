@@ -69,3 +69,5 @@ trait GT3EngineBalanceProvider {
 
   lazy val engineBalances = TableQuery[EngineBalanceT]
 }
+
+trait GTCEngineBalanceProvider extends GT3EngineBalanceProvider
