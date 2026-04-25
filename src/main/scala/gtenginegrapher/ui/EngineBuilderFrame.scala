@@ -633,7 +633,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
                     case _: GT3AllSchema   => 250
                     case _: GT4AllSchema   => 50
                     case _: GTPspAllSchema => 0
-                    case _: GTCAllSchema => 0
+                    case _: GTCAllSchema   => 0
                   }
 
                   override def toString: String = "Applied"

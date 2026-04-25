@@ -2,9 +2,23 @@ package gtenginegrapher.ui
 
 import java.awt._
 import java.awt.event.{ActionEvent, ActionListener, WindowEvent}
+
 import javax.swing._
-import gtenginegrapher.schema.{AllSchema, GT3AllSchema, GT4AllSchema, GTCAllSchema, GTPspAllSchema, SimpleName}
-import gtenginegrapher.wrappers.{WearAffectedByPrizeStatus, WearNonexistent, WearUnaffectedByPrizeStatus, WearValues}
+
+import gtenginegrapher.schema.{
+  AllSchema,
+  GT3AllSchema,
+  GT4AllSchema,
+  GTCAllSchema,
+  GTPspAllSchema,
+  SimpleName,
+}
+import gtenginegrapher.wrappers.{
+  WearAffectedByPrizeStatus,
+  WearNonexistent,
+  WearUnaffectedByPrizeStatus,
+  WearValues,
+}
 
 class WearAdjustmentPanel(
   owner: JFrame,
@@ -130,6 +144,6 @@ object WearAdjustmentPanel {
     case _: GT3AllSchema   => (false -> 0, true -> 0)
     case _: GT4AllSchema   => (false -> 0, false -> 0)
     case _: GTPspAllSchema => (false -> 0, false -> 0)
-    case _: GTCAllSchema => (false -> 0, false -> 0)
+    case _: GTCAllSchema   => (false -> 0, false -> 0)
   }
 }
