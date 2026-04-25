@@ -1,6 +1,6 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version      := "1.3.0"
+ThisBuild / version      := "1.3.3"
 ThisBuild / scalaVersion := "2.13.16"
 
 lazy val sbtAssemblySettings = baseAssemblySettings ++ Seq(
@@ -23,7 +23,7 @@ lazy val root = (project in file("."))
       "com.typesafe.slick" %% "slick"          % "3.6.1",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.6.1",
       "org.slf4j"           % "slf4j-nop"      % "2.0.17",
-      "org.xerial"          % "sqlite-jdbc"    % "3.50.3.0",
+      "org.xerial"          % "sqlite-jdbc"    % "3.53.0.0",
       "org.jfree"           % "jfreechart"     % "1.5.6",
     ),
   )
