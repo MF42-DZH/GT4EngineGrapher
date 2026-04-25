@@ -64,3 +64,23 @@ trait GT3NameProvider {
 
   lazy val names = TableQuery[NameT]
 }
+
+// XXX: Annoyingly, the GTC CARS table didn't extract properly.
+// We'll have to reconstruct the names from another table, the ENGINE table in this case.
+trait GTCNameProvider {
+  class NameT(tag: Tag) extends GT3SpecTable[Name](tag, "ENGINE") {
+    override def label: Rep[String] = column[String]("CarLabel")
+    def name = column[String]("CarLabel")
+
+    override def * : ProvenShape[Name] =
+      (
+        label,
+        name,
+      ) <> ({ case (l, n) =>
+        Name(0, l, n)
+      },
+      (name: Name) => Some((name.label, name.name)))
+  }
+
+  lazy val names = TableQuery[NameT]
+}

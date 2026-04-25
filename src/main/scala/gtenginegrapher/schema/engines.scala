@@ -716,3 +716,5 @@ trait GT3EngineProvider {
 
   lazy val engines = TableQuery[EngineT]
 }
+
+trait GTCEngineProvider extends GT3EngineProvider

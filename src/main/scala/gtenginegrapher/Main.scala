@@ -9,7 +9,7 @@ import scala.language.postfixOps
 import gtenginegrapher.schema._
 import gtenginegrapher.ui.EngineBuilderFrame
 import gtenginegrapher.utils._
-import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, GTPspWear, WearValues}
+import gtenginegrapher.wrappers.{GT3Wear, GT4Wear, GTCWear, GTPspWear, WearValues}
 import slick.jdbc.SQLiteProfile.api._
 import slick.jdbc.SQLiteProfile.backend.JdbcDatabaseDef
 
@@ -32,8 +32,9 @@ object Main extends SlickEscapes {
       |VERSION     1.05 | 1.06 | 1.07 | 1.08 | 1.09 |     (Spec II version; ignored if REGION is not Spec II; default: 1.10)
       |            1.10
       |GT3         gt3 | GT3                              (Gran Turismo 3 NTSC-U)
+      |GTC         gtc | GTC                              (Gran Turismo Concept PAL)
       |
-      |If REGION is not specified, GT4 NTSC-U is assumed. Asking for the GT3 ParamDB
+      |If REGION is not specified, GT4 NTSC-U is assumed. Asking for the PSP SpecDB or GT3/GTC ParamDB
       |instead will supersede all other region options.""".stripMargin,
   )
 
@@ -47,10 +48,11 @@ object Main extends SlickEscapes {
 
     // TODO: Get a proper argument parser. This is getting out of hand.
     implicit val (schema: AllSchema, db: JdbcDatabaseDef, wear: WearValues, region: Region) =
-      if (!args.exists(arg => Set("gt3", "psp").contains(arg.toLowerCase))) {
+      if (!args.exists(arg => Set("gt3", "psp", "gtc").contains(arg.toLowerCase))) {
         val gt4Schema: GT4AllSchema = new GT4AllSchema
         val (udb, reg): (JdbcDatabaseDef, Region) =
           args
+            .map(_.toLowerCase)
             .collectFirst {
               case "ntsc-u" | "us" | "usa" | "america" => gt4Schema.usDb    -> NtscU
               case "opb-u"                             => gt4Schema.usOpbDb -> NtscUOpb
@@ -83,6 +85,11 @@ object Main extends SlickEscapes {
         val udb = gtPspSchema.jpPspDb
 
         (gtPspSchema.asBase, udb, GTPspWear.asBase, NtscJ)
+      } else if (args.exists(_.toLowerCase == "gtc")) {
+        val gtConceptSchema: GTCAllSchema = new GTCAllSchema
+        val udb = gtConceptSchema.gtcDb
+
+        (gtConceptSchema.asBase, udb, GTCWear.asBase, Pal)
       }
 
     import schema._

@@ -50,3 +50,5 @@ trait GT3PortPolishProvider {
 
   lazy val portPolishes = TableQuery[PortPolishT]
 }
+
+trait GTCPortPolishProvider extends GT3PortPolishProvider

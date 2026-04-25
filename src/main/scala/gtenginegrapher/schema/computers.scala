@@ -50,3 +50,5 @@ trait GT3ComputerProvider {
 
   lazy val computers = TableQuery[ComputerT]
 }
+
+trait GTCComputerProvider extends GT3ComputerProvider

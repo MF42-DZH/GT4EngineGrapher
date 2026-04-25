@@ -10,3 +10,4 @@ case object NtscK extends Region { override val label: String = "Korea" }
 case object NtscJ extends Region { override val label: String = "Japan" }
 case object NtscJOpb extends Region { override val label: String = "Japan (Online Public Beta)" }
 case object Pal extends Region { override val label: String = "Europe" }
+case object Universal extends Region { override val label: String = "Universal" }

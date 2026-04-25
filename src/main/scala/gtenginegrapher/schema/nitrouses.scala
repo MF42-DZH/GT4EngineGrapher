@@ -85,3 +85,5 @@ trait GT3NitrousProvider {
 
   lazy val nitrouses = TableQuery[NitrousT]
 }
+
+trait GTCNitrousProvider extends GT3NitrousProvider

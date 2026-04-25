@@ -86,6 +86,36 @@ class GT3AllSchema
   override type NitrousTable = NitrousT
 }
 
+class GTCAllSchema
+  extends GTCNameProvider
+  with GTCEngineProvider
+  with GTCNATunesProvider
+  with GTCSuperchargerProvider
+  with GTCTurbineKitProvider
+  with GTCPortPolishProvider
+  with GTCEngineBalanceProvider
+  with GTCMufflerProvider
+  with GTCDisplacementUpProvider
+  with GTCComputerProvider
+  with GTCIntercoolerProvider
+  with GTCNitrousProvider
+  with AllSchema {
+  lazy val gtcDb = createTempDb("/paramdb_gtc_pal.sqlite")
+
+  override type NameTable = NameT
+  override type EngineTable = EngineT
+  override type NATuneTable = NATuneT
+  override type SuperchargerTable = SuperchargerT
+  override type TurbineKitTable = TurbineKitT
+  override type PortPolishTable = PortPolishT
+  override type EngineBalanceTable = EngineBalanceT
+  override type MufflerTable = MufflerT
+  override type DisplacementUpTable = DisplacementUpT
+  override type ComputerTable = ComputerT
+  override type IntercoolerTable = IntercoolerT
+  override type NitrousTable = NitrousT
+}
+
 class GT4AllSchema
   extends GT4NameProvider
   with GT4EngineProvider

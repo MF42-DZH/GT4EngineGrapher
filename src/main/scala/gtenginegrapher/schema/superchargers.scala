@@ -52,3 +52,5 @@ trait GT3SuperchargerProvider {
 
   lazy val superchargers = TableQuery[SuperchargerT]
 }
+
+trait GTCSuperchargerProvider extends GT3SuperchargerProvider

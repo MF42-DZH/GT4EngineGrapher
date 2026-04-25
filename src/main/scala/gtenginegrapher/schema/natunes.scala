@@ -71,3 +71,5 @@ trait GT3NATunesProvider {
 
   lazy val naTunes = TableQuery[NATuneT]
 }
+
+trait GTCNATunesProvider extends GT3NATunesProvider

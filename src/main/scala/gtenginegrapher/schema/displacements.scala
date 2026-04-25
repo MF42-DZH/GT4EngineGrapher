@@ -50,3 +50,5 @@ trait GT3DisplacementUpProvider {
 
   lazy val displacementUps = TableQuery[DisplacementUpT]
 }
+
+trait GTCDisplacementUpProvider extends GT3DisplacementUpProvider
