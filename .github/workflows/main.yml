@@ -15,8 +15,8 @@ jobs:
   fat:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v6
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '21.0.2'
@@ -27,7 +27,7 @@ jobs:
     - name: Assemble Uberjar
       run: sbt assembly
     - name: Upload Uberjar
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: jars
         path: "${{ env.pkg-assembly }}"
@@ -35,7 +35,7 @@ jobs:
     needs: fat
     runs-on: [macos-latest]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -43,7 +43,7 @@ jobs:
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: jars
         path: artifacts
@@ -52,7 +52,7 @@ jobs:
     - name: View artifacts
       run: ls AppImage
     - name: Upload OSX App Image
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: appimage-osx
         path: "./AppImage/${{ env.pkg-image }}"
@@ -60,7 +60,7 @@ jobs:
     needs: fat
     runs-on: [windows-latest]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -68,7 +68,7 @@ jobs:
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: jars
         path: artifacts
@@ -77,7 +77,7 @@ jobs:
     - name: View artifacts
       run: dir AppImage
     - name: Upload Windows App Image
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: appimage-windows
         path: ".\\AppImage\\${{ env.pkg-image }}"
@@ -85,7 +85,7 @@ jobs:
     needs: fat
     runs-on: [ubuntu-latest]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -93,7 +93,7 @@ jobs:
         java-package: jdk
         architecture: x64
     - name: Download fat jar
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: jars
         path: artifacts
@@ -102,7 +102,7 @@ jobs:
     - name: View artifacts
       run: ls AppImage
     - name: Upload Linux App Image
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: appimage-linux
         path: "./AppImage/${{ env.pkg-image }}"
