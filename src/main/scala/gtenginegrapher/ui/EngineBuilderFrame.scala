@@ -43,14 +43,19 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       s" - ${region.toString}"
   }
 
-  setLayout(new BoxLayout(getContentPane, BoxLayout.PAGE_AXIS))
-  setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+  private val addComponentEBF = UIUtils
+    .initialiseGridBag(this)
+    .setInsets(new Insets(0, 0, 4, 0))
+    .setFill(GridBagConstraints.BOTH)
+    .setAnchor(GridBagConstraints.CENTER)
 
+  getRootPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 8))
+
+  // Make sure to halt the thread when done.
+  setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
   addWindowListener(new WindowAdapter {
     override def windowClosing(e: WindowEvent): Unit = {
-      if (e.getNewState == WindowEvent.WINDOW_CLOSING) {
-        worker.shutdownNow()
-      }
+      worker.shutdownNow()
     }
   })
 
@@ -91,8 +96,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   private val hybridTick = new JCheckBox("Allow Hybriding")
   hybridTick.setEnabled(false)
 
-  add(new JPanel() {
-    val usedLayout = new FlowLayout()
+  private val homePanel = new JPanel() {
+    private val usedLayout = new FlowLayout()
     usedLayout.setHgap(4)
     setLayout(usedLayout)
 
@@ -101,18 +106,15 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       label.setFont(label.getFont.deriveFont(Font.BOLD))
       label
     }
-    add(new JPanel() {
-      setLayout(usedLayout)
-      add(carSelector)
-      add(displayButton)
-      add(wearButton)
-      add(bypassTick)
-      add(hybridTick)
-    })
 
-    setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 2))
-  })
-  add(customizerHome)
+    add(carSelector)
+    add(displayButton)
+    add(wearButton)
+    add(bypassTick)
+    add(hybridTick)
+  }
+
+  addComponentEBF(homePanel, 0, 0)
 
   private def regenerateCustomizer(): Unit = {
     val lbar = new JProgressBar() {
@@ -131,6 +133,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       pack()
     }
 
+    Try(remove(customizerHome)) match {
+      case _ => addComponentEBF(customizerHome, 0, 1)
+    }
+
     customizerHome.removeAll()
 
     if (carSelector.getItem.label != "___not_a_car") {
@@ -145,8 +151,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         wearSaveData = None
         displayButton.setEnabled(true)
         wearButton.setEnabled(!wear.isInstanceOf[WearNonexistent])
-        bypassTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema] && !hybridTick.isSelected)
-        hybridTick.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
+        bypassTick.setEnabled(schema.enableHybriding && !hybridTick.isSelected)
+        hybridTick.setEnabled(schema.enableHybriding)
         ebf.pack()
         ebf.repaint()
       }: Runnable)
@@ -208,17 +214,22 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
   }
 
   // Car customizer
-  private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() with ActionListener { inner =>
+  private def newCustomizer(bar: JProgressBar): JPanel = new JPanel() with ActionListener {
+    inner =>
     hybridTick.setEnabled(false)
     bypassTick.setEnabled(false)
 
     private def name = carSelector.getItem
 
-    val customizerLayout = new FlowLayout()
-    customizerLayout.setHgap(8)
-    customizerLayout.setVgap(2)
+    private val defaultInset = new Insets(0, 0, 2, 8)
+    private val rightBorderInset = new Insets(0, 0, 2, 0)
+    private val bottomBorderInset = new Insets(0, 0, 0, 8)
+    private val bottomRightCornerInset = new Insets(0, 0, 0, 0)
 
-    setLayout(customizerLayout)
+    private val addComponentCustomizer = UIUtils
+      .initialiseGridBag(inner)
+      .setAnchor(GridBagConstraints.CENTER)
+      .setFill(GridBagConstraints.BOTH)
 
     def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](
       table: TableQuery[T],
@@ -484,6 +495,8 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     // Nitrous strength input.
     val (nsp, nsi, nsl) = {
       val label = new JLabel("Nitrous Strength")
+      label.setFont(label.getFont.deriveFont(Font.BOLD))
+
       val input = UIUtils.positiveNumberOnlyTextField()
 
       val panel = new JPanel(new GridLayout(0, 1, 2, 0)) {
@@ -625,7 +638,9 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
                 "New Oil",
                 new HasTorqueRemapping {
                   override val rowId: Int = 0
+
                   override def highRPMTorqueModifier: Int = 105
+
                   override def lowRPMTorqueModifier: Int = 105
 
                   override val category: Int = 1
@@ -658,64 +673,65 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       case _                                   => super.processEvent(e)
     }
 
-    // Column 1
-    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
-      add(ppp)
-      add(ebp)
-      add(dup)
-    })
+    addComponentCustomizer.setInsets(defaultInset)
+    addComponentCustomizer(ppp, 0, 0)
+    addComponentCustomizer(ebp, 0, 1)
+    addComponentCustomizer.setInsets(bottomBorderInset)
+    addComponentCustomizer(dup, 0, 2)
 
-    // Column 2
-    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
-      add(exp)
-      add(ecup)
-      add(nap)
-    })
+    addComponentCustomizer.setInsets(defaultInset)
+    addComponentCustomizer(exp, 1, 0)
+    addComponentCustomizer(ecup, 1, 1)
+    addComponentCustomizer.setInsets(bottomBorderInset)
+    addComponentCustomizer(nap, 1, 2)
 
-    // Column 3
-    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
-      add(tkp)
-      add(icp)
-      add(scp)
-    })
+    addComponentCustomizer.setInsets(defaultInset)
+    addComponentCustomizer(tkp, 2, 0)
+    addComponentCustomizer(icp, 2, 1)
+    addComponentCustomizer.setInsets(bottomBorderInset)
+    addComponentCustomizer(scp, 2, 2)
 
-    // Column 4
-    add(new JPanel(new GridLayout(0, 1, 0, 2)) {
-      add(nosp)
-      add(nsp)
-      add(new JButton("Map Engine") { button =>
-        KeyboardFocusManager.getCurrentKeyboardFocusManager.addKeyEventPostProcessor {
-          val listener = new KeyEventPostProcessor {
-            override def postProcessKeyEvent(e: KeyEvent): Boolean = {
-              if (e.isShiftDown && !schema.isInstanceOf[GTPspAllSchema]) {
-                button.setText("Get Shopping List")
-                button.setActionCommand(ShowShoppingList.toString)
-              } else if (!e.isShiftDown) {
-                button.setText("Map Engine")
-                button.setActionCommand(ShowGraph.toString)
-              }
+    addComponentCustomizer.setInsets(rightBorderInset)
+    addComponentCustomizer(nosp, 3, 0)
+    addComponentCustomizer(nsp, 3, 1)
 
-              true
+    private val actionButton = new JButton("Map Engine") {
+      button =>
+      KeyboardFocusManager.getCurrentKeyboardFocusManager.addKeyEventPostProcessor {
+        val listener = new KeyEventPostProcessor {
+          override def postProcessKeyEvent(e: KeyEvent): Boolean = {
+            if (e.isShiftDown && !schema.isInstanceOf[GTPspAllSchema]) {
+              button.setText("Get Shopping List")
+              button.setActionCommand(ShowShoppingList.toString)
+            } else if (!e.isShiftDown) {
+              button.setText("Map Engine")
+              button.setActionCommand(ShowGraph.toString)
             }
+
+            true
           }
-
-          Option(listeners.poll()) match {
-            case Some(old) =>
-              KeyboardFocusManager.getCurrentKeyboardFocusManager.removeKeyEventPostProcessor(old)
-            case None      => ()
-          }
-
-          listeners.add(listener)
-
-          listener
         }
 
-        addActionListener(inner)
-        addActionListener(ebf)
+        Option(listeners.poll()) match {
+          case Some(old) =>
+            KeyboardFocusManager.getCurrentKeyboardFocusManager.removeKeyEventPostProcessor(old)
+          case None      => ()
+        }
 
-        setActionCommand(ShowGraph.toString)
-      })
-    })
+        listeners.add(listener)
+
+        listener
+      }
+
+      addActionListener(inner)
+      addActionListener(ebf)
+
+      setActionCommand(ShowGraph.toString)
+    }
+
+    addComponentCustomizer.setInsets(bottomRightCornerInset)
+    addComponentCustomizer(actionButton, 3, 2)
+
     bar.setValue(12)
 
     if (hybridTick.isSelected) bypassTick.setSelected(true)

@@ -42,7 +42,8 @@ class DisplayPanel(
 
   setContentPane {
     new JPanel() { pan =>
-      private val addComponent = UIUtils.initialiseGridBag(pan)
+      private val addComponent = UIUtils
+        .initialiseGridBag(pan)
         .setInsets(new Insets(0, 0, 4, 8))
         .setFill(GridBagConstraints.BOTH)
         .setAnchor(GridBagConstraints.CENTER)

@@ -1,6 +1,7 @@
 package gtenginegrapher.ui
 
 import java.awt.{List => _, _}
+
 import javax.swing._
 import javax.swing.event.{DocumentEvent, DocumentListener}
 
@@ -46,9 +47,9 @@ object UIUtils {
       apply(child, x, y, 1, 1)
 
     def apply(child: Component, x: Int, y: Int, w: Int, h: Int): ComponentAdder = {
-      constraints.gridx = x
-      constraints.gridy = y
-      constraints.gridwidth = w
+      constraints.gridx      = x
+      constraints.gridy      = y
+      constraints.gridwidth  = w
       constraints.gridheight = h
 
       layout.setConstraints(child, constraints)
