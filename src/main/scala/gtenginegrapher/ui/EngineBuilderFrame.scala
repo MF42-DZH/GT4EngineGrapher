@@ -292,24 +292,17 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
     def generateCustomizer[T <: Object: ClassTag](
       label: String,
-    )(items: => Seq[T]): (JComboBox[T], JPanel) = {
-      val selector = new JComboBox[T](items.toArray)
-      val panel = new JPanel() {
-        setLayout(new GridLayout(0, 1, 2, 0))
-        add {
-          val heading = new JLabel(label)
-          heading.setFont(heading.getFont.deriveFont(Font.BOLD))
-          heading
-        }
-        add(selector)
-      }
+    )(items: => Seq[T]): (JLabel, JComboBox[T]) = {
+      val heading = new JLabel(label)
+      heading.setFont(heading.getFont.deriveFont(Font.BOLD))
 
+      val selector = new JComboBox[T](items.toArray)
       selector.setEnabled(!schema.isInstanceOf[GTPspAllSchema])
 
-      (selector, panel)
+      (heading, selector)
     }
 
-    val (pps, ppp) = generateCustomizer[PortPolish]("Port Polish") {
+    val (ppl, pps) = generateCustomizer[PortPolish]("Port Polish") {
       PortPolish(
         rowId                 = 0,
         label                 = "notapplied",
@@ -320,7 +313,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[PortPolish, PortPolishTable](portPolishes)
     }
     bar.setValue(1)
-    val (ebs, ebp) = generateCustomizer[EngineBalance]("Engine Balancing") {
+    val (ebl, ebs) = generateCustomizer[EngineBalance]("Engine Balancing") {
       EngineBalance(
         rowId                 = 0,
         label                 = "notapplied",
@@ -333,7 +326,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[EngineBalance, EngineBalanceTable](engineBalances)
     }
     bar.setValue(2)
-    val (dus, dup) = generateCustomizer[DisplacementUp]("Displacement Up") {
+    val (dul, dus) = generateCustomizer[DisplacementUp]("Displacement Up") {
       DisplacementUp(
         rowId                 = 0,
         label                 = "notapplied",
@@ -344,7 +337,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[DisplacementUp, DisplacementUpTable](displacementUps)
     }
     bar.setValue(3)
-    val (exs, exp) = generateCustomizer[Muffler]("Exhaust") {
+    val (exl, exs) = generateCustomizer[Muffler]("Exhaust") {
       Muffler(
         rowId                 = 0,
         label                 = "notapplied",
@@ -355,7 +348,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[Muffler, MufflerTable](mufflers)
     }
     bar.setValue(4)
-    val (ecus, ecup) = generateCustomizer[Computer]("Racing Chip") {
+    val (ecul, ecus) = generateCustomizer[Computer]("Racing Chip") {
       Computer(
         rowId                 = 0,
         label                 = "notapplied",
@@ -366,7 +359,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[Computer, ComputerTable](computers)
     }
     bar.setValue(5)
-    val (nas, nap) =
+    val (nal, nas) =
       generateCustomizer[NATune]("NA Tuning") {
         NATune(
           rowId                 = 0,
@@ -380,7 +373,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         ) +: getUpgrades[NATune, NATuneTable](naTunes)
       }
     bar.setValue(6)
-    val (tks, tkp) =
+    val (tkl, tks) =
       generateCustomizer[TurbineKit]("Turbine Kit") {
         val turbines = getUpgrades[TurbineKit, TurbineKitTable](turbineKits)
 
@@ -405,7 +398,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
           ) +: turbines
       }
     bar.setValue(7)
-    val (ics, icp) = generateCustomizer[Intercooler]("Intercooler") {
+    val (icl, ics) = generateCustomizer[Intercooler]("Intercooler") {
       Intercooler(
         rowId                 = 0,
         label                 = "notapplied",
@@ -416,7 +409,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       ) +: getUpgrades[Intercooler, IntercoolerTable](intercoolers)
     }
     bar.setValue(8)
-    val (scs, scp) =
+    val (scl, scs) =
       generateCustomizer[Supercharger]("Supercharger") {
         Supercharger(
           rowId                 = 0,
@@ -432,7 +425,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
         )
       }
     bar.setValue(9)
-    val (noss, nosp) = generateCustomizer[Nitrous]("Nitrous") {
+    val (nosl, noss) = generateCustomizer[Nitrous]("Nitrous") {
       Nitrous(
         rowId          = 0,
         label          = "notapplied",
@@ -493,20 +486,14 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     )
 
     // Nitrous strength input.
-    val (nsp, nsi, nsl) = {
+    val (nsl, nsi) = {
       val label = new JLabel("Nitrous Strength")
       label.setFont(label.getFont.deriveFont(Font.BOLD))
 
       val input = UIUtils.positiveNumberOnlyTextField()
-
-      val panel = new JPanel(new GridLayout(0, 1, 2, 0)) {
-        add(label)
-        add(input)
-      }
-
       input.setEnabled(false)
 
-      (panel, input, label)
+      (label, input)
     }
     bar.setValue(11)
 
@@ -674,26 +661,37 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
 
     addComponentCustomizer.setInsets(defaultInset)
-    addComponentCustomizer(ppp, 0, 0)
-    addComponentCustomizer(ebp, 0, 1)
+    addComponentCustomizer(ppl, 0, 0)
+    addComponentCustomizer(pps, 0, 1)
+    addComponentCustomizer(ebl, 0, 3)
+    addComponentCustomizer(ebs, 0, 4)
+    addComponentCustomizer(dul, 0, 6)
     addComponentCustomizer.setInsets(bottomBorderInset)
-    addComponentCustomizer(dup, 0, 2)
+    addComponentCustomizer(dus, 0, 7)
 
     addComponentCustomizer.setInsets(defaultInset)
-    addComponentCustomizer(exp, 1, 0)
-    addComponentCustomizer(ecup, 1, 1)
+    addComponentCustomizer(exl, 1, 0)
+    addComponentCustomizer(exs, 1, 1)
+    addComponentCustomizer(ecul, 1, 3)
+    addComponentCustomizer(ecus, 1, 4)
+    addComponentCustomizer(nal, 1, 6)
     addComponentCustomizer.setInsets(bottomBorderInset)
-    addComponentCustomizer(nap, 1, 2)
+    addComponentCustomizer(nas, 1, 7)
 
     addComponentCustomizer.setInsets(defaultInset)
-    addComponentCustomizer(tkp, 2, 0)
-    addComponentCustomizer(icp, 2, 1)
+    addComponentCustomizer(tkl, 2, 0)
+    addComponentCustomizer(tks, 2, 1)
+    addComponentCustomizer(icl, 2, 3)
+    addComponentCustomizer(ics, 2, 4)
+    addComponentCustomizer(scl, 2, 6)
     addComponentCustomizer.setInsets(bottomBorderInset)
-    addComponentCustomizer(scp, 2, 2)
+    addComponentCustomizer(scs, 2, 7)
 
     addComponentCustomizer.setInsets(rightBorderInset)
-    addComponentCustomizer(nosp, 3, 0)
-    addComponentCustomizer(nsp, 3, 1)
+    addComponentCustomizer(nosl, 3, 0)
+    addComponentCustomizer(noss, 3, 1)
+    addComponentCustomizer(nsl, 3, 3)
+    addComponentCustomizer(nsi, 3, 4)
 
     private val actionButton = new JButton("Map Engine") {
       button =>
@@ -730,7 +728,10 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
 
     addComponentCustomizer.setInsets(bottomRightCornerInset)
-    addComponentCustomizer(actionButton, 3, 2)
+    addComponentCustomizer(actionButton, 3, 6, 1, 2)
+
+    addComponentCustomizer(Box.createRigidArea(new Dimension(0, 4)), 0, 2, 4, 1)
+    addComponentCustomizer(Box.createRigidArea(new Dimension(0, 4)), 0, 5, 4, 1)
 
     bar.setValue(12)
 
