@@ -59,7 +59,6 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     }
   })
 
-  private val customizerHome = new JPanel()
   private val listeners = new java.util.ArrayDeque[KeyEventPostProcessor](2)
 
   private var wearSaveData: Option[(BigDecimal, WearAdjustmentPanel.WearData)] = None
@@ -133,26 +132,26 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       pack()
     }
 
-    Try(remove(customizerHome)) match {
-      case _ => addComponentEBF(customizerHome, 0, 1)
-    }
-
-    customizerHome.removeAll()
-
     if (carSelector.getItem.label != "___not_a_car") {
-      customizerHome.add(loading)
+      addComponentEBF(loading, 0, 1)
       ebf.pack()
       ebf.repaint()
 
       worker.submit({ () =>
         val customizer = newCustomizer(lbar)
-        customizerHome.removeAll()
-        customizerHome.add(customizer)
+
+        remove(loading)
+        ebf.pack()
+        ebf.repaint()
+
+        addComponentEBF(customizer, 0, 1)
+
         wearSaveData = None
         displayButton.setEnabled(true)
         wearButton.setEnabled(!wear.isInstanceOf[WearNonexistent])
         bypassTick.setEnabled(schema.enableHybriding && !hybridTick.isSelected)
         hybridTick.setEnabled(schema.enableHybriding)
+
         ebf.pack()
         ebf.repaint()
       }: Runnable)
