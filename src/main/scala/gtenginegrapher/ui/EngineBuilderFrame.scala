@@ -189,7 +189,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       )
 
       up.pack()
-      up.setLocationRelativeTo(null)
+      up.setLocationRelativeTo(ebf)
       up.setResizable(false)
       up.setVisible(true)
     case s if s == OpenWearPanel.toString    =>
@@ -201,7 +201,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       )
 
       adj.pack()
-      adj.setLocationRelativeTo(null)
+      adj.setLocationRelativeTo(ebf)
       adj.setResizable(false)
       adj.setVisible(true)
     case _                                   => super.processEvent(e)
@@ -588,7 +588,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       chart.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
 
       chart.pack()
-      chart.setLocationRelativeTo(null)
+      chart.setLocationRelativeTo(ebf)
       chart.setVisible(true)
     }
 
@@ -647,7 +647,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       )
 
       shoppingList.pack()
-      shoppingList.setLocationRelativeTo(null)
+      shoppingList.setLocationRelativeTo(ebf)
       shoppingList.setResizable(false)
       shoppingList.setVisible(true)
     }
