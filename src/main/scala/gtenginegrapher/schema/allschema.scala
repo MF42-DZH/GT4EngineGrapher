@@ -53,6 +53,8 @@ sealed trait AllSchema {
     Database.forURL(s"jdbc:sqlite://${tfile.toPath}", driver = "org.sqlite.JDBC")
   }
 
+  def enableHybriding: Boolean
+
   final val asBase: AllSchema = this
 }
 
@@ -84,6 +86,8 @@ class GT3AllSchema
   override type ComputerTable = ComputerT
   override type IntercoolerTable = IntercoolerT
   override type NitrousTable = NitrousT
+
+  override val enableHybriding: Boolean = false
 }
 
 class GTCAllSchema
@@ -114,6 +118,8 @@ class GTCAllSchema
   override type ComputerTable = ComputerT
   override type IntercoolerTable = IntercoolerT
   override type NitrousTable = NitrousT
+
+  override val enableHybriding: Boolean = false
 }
 
 class GT4AllSchema
@@ -156,6 +162,8 @@ class GT4AllSchema
   override type ComputerTable = ComputerT
   override type IntercoolerTable = IntercoolerT
   override type NitrousTable = NitrousT
+
+  override val enableHybriding: Boolean = true
 }
 
 class GTPspAllSchema
@@ -186,4 +194,6 @@ class GTPspAllSchema
   override type ComputerTable = ComputerT
   override type IntercoolerTable = IntercoolerT
   override type NitrousTable = NitrousT
+
+  override val enableHybriding: Boolean = false
 }

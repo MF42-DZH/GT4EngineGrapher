@@ -30,40 +30,33 @@ class DisplayPanel(
     case _                       => super.processEvent(e)
   }
 
-  private val labels = new JPanel { ls =>
-    ls.setLayout(new GridLayout(4, 1, 0, 4))
+  private val (labelTorque, labelPower, labelNormalize) = (
+    new JLabel("Torque Unit"),
+    new JLabel("Power Unit"),
+    new JLabel("Normalize Graphs"),
+  )
 
-    ls.add(new JLabel("Torque Unit"), 0)
-    ls.add(new JLabel("Power Unit"), 1)
-    ls.add(new JLabel("Normalize Graphs"), 2)
-    ls.add(new JPanel(), 3)
-  }
-
-  private val inputs = {
-    new JPanel { is =>
-      is.setLayout(new GridLayout(4, 1, 0, 4))
-
-      private val submitButton = new JButton("Submit")
-      submitButton.addActionListener(up)
-      submitButton.setActionCommand(submitCommand)
-
-      is.add(torque, 0)
-      is.add(power, 1)
-      is.add(norm, 2)
-      is.add(submitButton, 3)
-    }
-  }
+  private val submitButton = new JButton("Submit")
+  submitButton.addActionListener(up)
+  submitButton.setActionCommand(submitCommand)
 
   setContentPane {
     new JPanel() { pan =>
-      pan.setLayout {
-        new GridLayout(1, 2, 8, 0)
-      }
+      private val addComponent = UIUtils
+        .initialiseGridBag(pan)
+        .setInsets(new Insets(0, 0, 4, 8))
+        .setFill(GridBagConstraints.BOTH)
+        .setAnchor(GridBagConstraints.CENTER)
 
-      pan.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8))
+      pan.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 0))
 
-      pan.add(labels, 0)
-      pan.add(inputs, 1)
+      addComponent(labelTorque, 0, 0)
+      addComponent(labelPower, 0, 1)
+      addComponent(labelNormalize, 0, 2)
+      addComponent(torque, 1, 0)
+      addComponent(power, 1, 1)
+      addComponent(norm, 1, 2)
+      addComponent(submitButton, 0, 3, 2, 1)
     }
   }
 }
