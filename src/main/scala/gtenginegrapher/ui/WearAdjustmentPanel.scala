@@ -30,7 +30,7 @@ class WearAdjustmentPanel(
   with ActionListener { adj =>
   private val submitCommand = "SUBMIT"
 
-  private val (ticks, oilTick, carTick) = {
+  private val (oilTick, carTick) = {
     val ((ots, _), (cts, _)) = existingData.getOrElse(WearAdjustmentPanel.defaultData)
 
     val oil = new JCheckBox("Have Changed Oil?") {
@@ -52,63 +52,47 @@ class WearAdjustmentPanel(
         car.setEnabled(true)
     }
 
-    val panel = new JPanel {
-      tkp =>
-      private val usedLayout = new GridLayout(4, 1, 0, 4)
-      tkp.setLayout(usedLayout)
-
-      tkp.add(new JPanel(), 0)
-      tkp.add(oil, 1)
-      tkp.add(car, 2)
-      tkp.add(new JPanel(), 3)
-    }
-
-    (panel, oil, car)
+    (oil, car)
   }
 
-  private val (inputsAndSubmit, oilInput, carInput) = {
+  private val (travelLabel, oilInput, carInput, submitButton) = {
     val ((_, oms), (_, cms)) = existingData.getOrElse(WearAdjustmentPanel.defaultData)
 
     val oil = UIUtils.positiveNumberOnlyTextField(_.setText(oms.toString))
     val car = UIUtils.positiveNumberOnlyTextField(_.setText(cms.toString))
 
-    val panel = new JPanel {
-      ikp =>
-      private val usedLayout = new GridLayout(4, 1, 0, 4)
-      ikp.setLayout(usedLayout)
-
-      if (wear.isInstanceOf[WearNonexistent]) {
-        oil.setEnabled(false)
-        car.setEnabled(false)
-      }
-
-      private val submitButton = new JButton("Submit")
-      submitButton.addActionListener(adj)
-      submitButton.setActionCommand(submitCommand)
-
-      ikp.add(new JLabel("km Travelled Since") {
-        setFont(getFont.deriveFont(Font.BOLD))
-        setHorizontalAlignment(SwingConstants.CENTER)
-      })
-      ikp.add(oil, 1)
-      ikp.add(car, 2)
-      ikp.add(submitButton, 3)
+    if (wear.isInstanceOf[WearNonexistent]) {
+      oil.setEnabled(false)
+      car.setEnabled(false)
     }
 
-    (panel, oil, car)
+    val submit = new JButton("Submit")
+    submit.addActionListener(adj)
+    submit.setActionCommand(submitCommand)
+
+    val rightLabel = new JLabel("km Travelled Since") {
+      setFont(getFont.deriveFont(Font.BOLD))
+      setHorizontalAlignment(SwingConstants.CENTER)
+    }
+
+    (rightLabel, oil, car, submit)
   }
 
   setContentPane {
     new JPanel() { pan =>
-      pan.setLayout {
-        // I wish there was a cleaner constructor for this layout.
-        new GridLayout(1, 2, 8, 0)
-      }
+      private val addComponent = UIUtils.initialiseGridBag(pan)
+        .setInsets(new Insets(0, 0, 4, 8))
+        .setFill(GridBagConstraints.BOTH)
+        .setAnchor(GridBagConstraints.CENTER)
 
-      pan.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8))
+      pan.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 0))
 
-      pan.add(ticks, 0)
-      pan.add(inputsAndSubmit, 1)
+      addComponent(oilTick, 0, 1)
+      addComponent(carTick, 0, 2)
+      addComponent(travelLabel, 1, 0)
+      addComponent(oilInput, 1, 1)
+      addComponent(carInput, 1, 2)
+      addComponent(submitButton, 0, 3, 2, 1)
     }
   }
 
