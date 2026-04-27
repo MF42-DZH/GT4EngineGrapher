@@ -121,7 +121,9 @@ object Main extends SlickEscapes {
 
     SwingUtilities.invokeLater { () =>
       val frame = new EngineBuilderFrame(allNames)
+
       frame.setIconImage(ImageIO.read(Main.getClass.getResourceAsStream("/engine-analysis.png")))
+      frame.setResizable(false)
       frame.pack()
       frame.setLocationRelativeTo(null)
       frame.setVisible(true)
