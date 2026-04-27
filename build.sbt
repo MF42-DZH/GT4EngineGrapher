@@ -1,6 +1,6 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version      := "1.3.4"
+ThisBuild / version      := "1.3.5"
 ThisBuild / scalaVersion := "2.13.16"
 
 lazy val sbtAssemblySettings = baseAssemblySettings ++ Seq(

@@ -115,7 +115,16 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
   addComponentEBF(homePanel, 0, 0)
 
+  private var currentCustomizer: Option[JPanel] = None
+
   private def regenerateCustomizer(): Unit = {
+    Try {
+      currentCustomizer.foreach(remove)
+
+      ebf.pack()
+      ebf.repaint()
+    }
+
     val lbar = new JProgressBar() {
       setString("Loading Available Parts...")
       setStringPainted(true)
@@ -139,6 +148,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
 
       worker.submit({ () =>
         val customizer = newCustomizer(lbar)
+        currentCustomizer = Some(customizer)
 
         remove(loading)
         ebf.pack()
@@ -162,6 +172,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       hybridTick.setSelected(false)
       displayButton.setEnabled(false)
       wearButton.setEnabled(false)
+
       ebf.pack()
       ebf.repaint()
     }
@@ -229,6 +240,7 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
       .initialiseGridBag(inner)
       .setAnchor(GridBagConstraints.CENTER)
       .setFill(GridBagConstraints.BOTH)
+      .setWeights(1.0, 0.0)
 
     def byLabel[U <: CanHaveCarName, T <: SpecTable[U]](
       table: TableQuery[T],
