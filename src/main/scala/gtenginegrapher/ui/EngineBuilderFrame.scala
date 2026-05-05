@@ -500,6 +500,12 @@ class EngineBuilderFrame(allNames: Seq[SimpleName])(implicit
     val (nsl, nsi) = {
       val label = new JLabel("Nitrous Strength")
       label.setFont(label.getFont.deriveFont(Font.BOLD))
+      label.setPreferredSize(
+        new Dimension(
+          label.getPreferredSize.width + 32,
+          label.getPreferredSize.height,
+        )
+      )
 
       val input = UIUtils.positiveNumberOnlyTextField()
       input.setEnabled(false)
